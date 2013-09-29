@@ -191,6 +191,7 @@ Evo.Mouse = (function() {
                 e.preventDefault(); 
             }
 		},
+		
 		onMouseMove : function(e) {
 			if(typeof(e.pageX) == "number") {
 				_position.x = e.pageX;
@@ -209,7 +210,6 @@ Evo.Mouse = (function() {
         },
         
         onTouchEnd : function(e) {
-            console.log(_position);
             _position.x = -100000;
             _position.y = -100000;
         },
@@ -217,128 +217,17 @@ Evo.Mouse = (function() {
 		getPosition : function() {
 			return _position;
 		},
+		
 		getX : function() {
 			return _position.x;
 		},
+		
 		getY : function() {
 			return _position.y;
 		}
 	};
 	
 	Evo.init(self);
-	return self;
-})();
-
-Evo.DotFactory = (function() {
-	
-	var _numberOfDots = 1000,
-        _dots = new Array();
-	
-	//Public Methods
-	var self = {
-		
-		onReady : function() {
-            return;
-			for(var i=0; i < _numberOfDots; i++) {
-				_dots.push(new Evo.Dot(Evo.canvas.width * Math.random(), Evo.canvas.height * Math.random()));
-			}
-		},
-		
-		//-------------------------------------
-		// Registration Functions
-		
-		update : function(dt) {
-		
-		},
-		
-		draw : function(dt) {
-			
-		}
-	};
-	
-	Evo.init(self);
-	return self;
-})();
-
-Evo.Dot = (function() {
-	var self = function(x, y) {
-		var speed = .05;
-		var brightness = 150;
-        
-		this.position = new Evo.Vector(x,y);
-		this.direction = new Evo.Vector(
-			speed * Math.random() - speed / 2,
-			speed * Math.random() - speed / 2
-		);
-		
-		this.size = 10 * Math.random() + 1;
-		this.fillStyle = Evo.Worker.rgbToFillstyle(
-            parseInt(Math.random() * brightness),
-            parseInt(Math.random() * brightness),
-            parseInt(Math.random() * brightness)
-        );
-        console.log(this.fillStyle);
-		this.fleeSpeed = 1000 * Math.random() + 500;
-		this.fleeDistance = (150 * Math.random()) + 180;
-		
-		this.mouseVector;
-		this.mouseLength;
-		this.mouseVector
-		
-        
-        console.log(this.fillStyle)
-        
-		var instance = this;
-		Evo.Loop.registerDraw(this);
-		Evo.Loop.registerUpdate(this);
-        
-	};
-	
-	self.prototype.update = function(dt) {
-		this.updatePosition(dt);
-		this.fleeMouse(dt);
-		this.keepOnScreen(dt);
-	};
-	
-	self.prototype.draw = function(dt) {	
-		Evo.context.beginPath();
-		//Evo.context.arc(this.position.x, this.position.y, this.size, 0, 2*Math.PI);
-        Evo.context.fillStyle = this.fillStyle;
-        Evo.context.fillRect(this.position.x, this.position.y, this.size, this.size);
-		Evo.context.fill();
-	};
-	
-	self.prototype.updatePosition = function(dt) {
-		this.position.add(
-			Evo.VMath.multiply(this.direction, dt)
-		);
-	};
-	
-	self.prototype.fleeMouse = function(dt) {
-		this.mouseVector = Evo.VMath.subtract(this.position, Evo.Mouse.getPosition());
-		this.mouseDistance = this.mouseVector.length();
-		this.moveLength = (Math.max(0, this.fleeDistance - this.mouseDistance) / this.fleeSpeed) * dt;
-		
-		if(this.moveLength > 0) {
-			
-			//Normalize
-			this.mouseVector.divide(this.mouseDistance);
-			//Lengthen
-			this.mouseVector.multiply(this.moveLength)
-			
-			this.position.add(
-				this.mouseVector
-			);
-		}
-	};
-	
-	self.prototype.keepOnScreen = function(dt) {
-		if(this.position.x < this.size * -1) {this.position.x = Evo.canvas.width  + this.size;}
-		if(this.position.y < this.size * -1) {this.position.y = Evo.canvas.height + this.size;}
-		if(this.position.x > Evo.canvas.width + this.size) {this.position.x = 0 - this.size;}
-		if(this.position.y > Evo.canvas.height + this.size) {this.position.y = 0 - this.size;}
-	};
-	
 	return self;
 })();
 
@@ -354,7 +243,6 @@ Evo.CellFactory = (function() {
 		onReady : function() {
             self.generateCells();
             $(Evo.canvas).click(self.killCells);
-            Evo.Worker.addDoubletapListener(Evo.Canvas, self.killCells);
 		},
 		
 		//-------------------------------------
@@ -374,13 +262,13 @@ Evo.CellFactory = (function() {
 			for(var i=0; i < _numberOfCells; i++) {
                 cell = new Evo.Cell(Evo.canvas.width * Math.random(), Evo.canvas.height * Math.random());
                 cell.generateDna();
+				self.animateCell(cell);
 				_cells.push(cell);
+				cell.i = i; //for debug
 			}
         },
         
         killCells : function() {
-            console.log('killing cells');
-            
             for(var i in _cells) {
                 _cells[i].kill();
             }
@@ -388,7 +276,15 @@ Evo.CellFactory = (function() {
             
             self.generateCells();
         },
-        
+		
+		animateCell : function(cell) {
+			
+			cell.stateMachine.add(new Evo.States.Roam(cell));
+			cell.stateMachine.add(new Evo.States.FleeMouse(cell, cell.dna.fleeSpeed, cell.dna.fleeDistance));
+			cell.stateMachine.add(new Evo.States.GrowAndDivide(cell, cell.dna.growthRate, cell.dna.divideSize));
+			
+		},
+		
         divideCell : function(cell) {
             if(_cells.length > _maxCells) return;
             
@@ -399,6 +295,7 @@ Evo.CellFactory = (function() {
             //Revert to children
             cell.revert();
             daughterCell.revert();
+			self.animateCell(daughterCell);
             
             _cells.push(daughterCell);
         }
@@ -409,114 +306,110 @@ Evo.CellFactory = (function() {
 })();
 
 Evo.Cell = (function() {
+	
 	var self = function(x,y) {
-		var speed = .05;
 		
 		this.position = new Evo.Vector(x,y);
-		this.direction = new Evo.Vector(
-			speed * Math.random() - speed / 2,
-			speed * Math.random() - speed / 2
-		);
 		
-		this.mouseVector;
-		this.mouseLength;
-		this.mouseVector
+		this.weightedDirection = new Evo.Vector(0,0);
+		
+		this.weightedSpeed = {
+			speed 	: 0,
+			weight	: 0,
+		};
+		
+		this.stateMachine = new Evo.StateMachine();
 		
 		Evo.Loop.registerDraw(this);
 		Evo.Loop.registerUpdate(this);
 	};
 	
-    self.prototype.kill = function() {
-        Evo.Loop.removeDraw(this);
-		Evo.Loop.removeUpdate(this);
-    }
-    
-    self.prototype.revert = function() {
-        this.size = (this.dna.birthSize / 2) + (this.dna.birthSize / 2) * Math.random();
-    }
-    
-    self.prototype.generateDna = function() {
-        var brightness = 200,
-            birthSize = 7 * Math.random() + 3;
-        
-        this.dna = {
-            fleeSpeed       :   1000 * Math.random() + 500,
-            fillStyle       :   Evo.Worker.rgbToFillstyle(
-                                    parseInt(Math.random() * brightness),
-                                    parseInt(Math.random() * brightness),
-                                    parseInt(Math.random() * brightness)
-                                ),
-            fleeSpeed       :   1000 * Math.random() + 500,
-            fleeDistance    :   (150 * Math.random()) + 180,
-            birthSize       :   birthSize,
-            growthRate      :   .001 * Math.random(),
-            divideSize      :   birthSize * 2.5
-        }
-        
-        this.revert();
-    }
-    
-    self.prototype.copyDna = function(dnaRef) {
-        this.dna = $.extend({}, dnaRef);
-    }
-    
-	self.prototype.update = function(dt) {
-		this.updatePosition(dt);
-		this.fleeMouse(dt);
-		this.keepOnScreen(dt);
-        this.updateGrowth(dt);
-	};
-	
-	self.prototype.draw = function(dt) {	
-		Evo.context.beginPath();
-        Evo.context.fillStyle = this.dna.fillStyle;
-        Evo.context.fillRect(this.position.x, this.position.y, this.size, this.size);
-		Evo.context.fill();
-	};
-	
-	self.prototype.updatePosition = function(dt) {
-		this.position.add(
-			Evo.VMath.multiply(this.direction, dt)
-		);
-	};
-    
-	self.prototype.updateGrowth = function(dt) {
-        this.size += this.dna.growthRate * dt;
-        
-        if(this.size > this.dna.divideSize) {
-            //Make sure we don't get too big
-            this.size = this.dna.divideSize;
-            
-            Evo.CellFactory.divideCell(this);
-            
-            
-        }
-    };
-    
-	self.prototype.fleeMouse = function(dt) {
-        
-		this.mouseVector = Evo.VMath.subtract(this.position, Evo.Mouse.getPosition());
-		this.mouseDistance = this.mouseVector.length();
-		this.moveLength = (Math.max(0, this.dna.fleeDistance - this.mouseDistance) / this.dna.fleeSpeed) * dt;
+	self.prototype = {
+		kill : function() {
+			Evo.Loop.removeDraw(this);
+			Evo.Loop.removeUpdate(this);
+		},
 		
-		if(this.moveLength > 0) {
+		revert : function() {
+			this.size = (this.dna.birthSize / 2) + (this.dna.birthSize / 2) * Math.random();
+		},
+		
+		generateDna : function() {
+			var brightness = 200,
+				birthSize = 7 * Math.random() + 3;
 			
-			//Normalize
-			this.mouseVector.divide(this.mouseDistance);
-			//Lengthen
-			this.mouseVector.multiply(this.moveLength)
+			this.dna = {
+				fleeSpeed       :   1000 * Math.random() + 500,
+				fillStyle       :   Evo.Worker.rgbToFillstyle(
+										parseInt(Math.random() * brightness),
+										parseInt(Math.random() * brightness),
+										parseInt(Math.random() * brightness)
+									),
+				fleeSpeed       :   1000 * Math.random() + 500,
+				fleeDistance    :   (150 * Math.random()) + 180,
+				birthSize       :   birthSize,
+				growthRate      :   .005 * Math.random(),
+				divideSize      :   birthSize * 2.5
+			}
+			
+			this.revert();
+		},
+		
+		copyDna : function(dnaRef) {
+			this.dna = $.extend({}, dnaRef);
+		},
+		
+		addWeightedDirection : function(vector, weight) {			
+			vector.multiply(weight);
+			this.weightedDirection.add(vector);			
+		},
+		
+		addWeightedSpeed : function(speed, weight) {
+			this.weightedSpeed.speed  += (speed * weight);
+			this.weightedSpeed.weight += weight;
+		},
+		
+		draw : function(dt) {
+			Evo.context.beginPath();
+			Evo.context.fillStyle = this.dna.fillStyle;
+			Evo.context.fillRect(this.position.x, this.position.y, this.size, this.size);
+			Evo.context.fill();
+		},
+		
+		//Updates
+		
+		update : function(dt) {
+			
+			this.stateMachine.update(dt);
+			this.update_position(dt);
+			this.update_keepOnScreen(dt);
+		},
+		
+		update_position : function(dt) {
+			
+			this.weightedDirection.normalize();
+			
+			if(this.weightedSpeed.weight > 0) {
+				this.weightedSpeed.speed = this.weightedSpeed.speed / this.weightedSpeed.weight;
+			}
 			
 			this.position.add(
-				this.mouseVector
+				Evo.VMath.multiply(this.weightedDirection, dt * this.weightedSpeed.speed)
 			);
+			
+			this.weightedDirection.x = 0;
+			this.weightedDirection.y = 0;
+			this.weightedSpeed.speed = 0;
+			this.weightedSpeed.weight = 0;
+			
+		},
+		
+		update_keepOnScreen : function(dt) {
+			if(this.position.x < this.size * -1) {this.position.x = Evo.canvas.width  + this.size;}
+			if(this.position.y < this.size * -1) {this.position.y = Evo.canvas.height + this.size;}
+			if(this.position.x > Evo.canvas.width + this.size) {this.position.x = 0 - this.size;}
+			if(this.position.y > Evo.canvas.height + this.size) {this.position.y = 0 - this.size;}
 		}
-	};
-	
-	self.prototype.keepOnScreen = function(dt) {
-		if(this.position.x < this.size * -1) {this.position.x = Evo.canvas.width  + this.size;}
-		if(this.position.y < this.size * -1) {this.position.y = Evo.canvas.height + this.size;}
-		if(this.position.x > Evo.canvas.width + this.size) {this.position.x = 0 - this.size;}
-		if(this.position.y > Evo.canvas.height + this.size) {this.position.y = 0 - this.size;}
 	};
 	
 	return self;
@@ -541,46 +434,57 @@ Evo.Worker = (function() {
 	return self;
 })();
 
-
 Evo.StateMachine = (function() {
 	
 	var self = function() {
-		this.currentStates;
+		this.currentStates = [];
 	};
 	
-	self.prototype.update = function() {
+	self.prototype.update = function(dt) {
 		for(var i in this.currentStates) {
-			this.currentStates.update();
+			this.currentStates[i].update(dt);
 		}
-	}
+	};
 	
-	self.prototype.add(state) {
-		
+	self.prototype.add = function(state) {
 		if(this.currentStates.indexOf(state) >= 0) return; //Do not add twice
 		state.onAdd();
 		this.currentStates.push(state);
-	}
+	};
 	
-	self.prototype.remove(state) {
+	self.prototype.remove = function(state) {
 		var index = this.currentStates.indexOf(state);
 		if(index >= 0) {
 			this.currentStates[index].onRemove();
 			this.currentStates.splice(index,1);
 		}
-	}
+	};
+	
+	self.prototype.has = function(state) {
+		return this.currentStates.indexOf(state) >= 0;
+	};
+	
+	return self;
 })();
 
 Evo.States = {};
 
 Evo.States.Roam = (function() {
 	
-	var self = function(actor, stateMachine, data) {
+	var self = function(actor) {
 		this.actor = actor;
-		this.stateMachine = stateMachine;
+		
+		this.speed = 0.05;
+		this.direction = new Evo.Vector(
+			(Math.random() * 2) - 1,
+			(Math.random() * 2) - 1
+		);
+		
 	};
 	
 	self.prototype.update = function() {
-		
+		this.actor.addWeightedDirection(this.direction, 1);
+		this.actor.addWeightedSpeed(this.speed, 1);
 	}
 	self.prototype.onAdd = function() {
 		
@@ -588,7 +492,101 @@ Evo.States.Roam = (function() {
 	self.prototype.onRemove = function() {
 		
 	}
-})
+	
+	return self;
+})();
+
+Evo.States.FleeMouse = (function() {
+	
+	var self = function(actor, fleeSpeed, fleeDistance) {
+		this.actor = actor;
+		
+		this.direction;
+		this.distanceToMouse = 0.0;
+		this.speed = 0.0;
+		this.weight = 2;
+		this.fleeSpeed = fleeSpeed;
+		this.fleeDistance = fleeDistance;
+		
+		this.currentWeight;
+		
+		this.prevDirection = new Evo.Vector(0,0);
+		this.prevSpeed = 0.0;
+		this.interpolationAmount = 1.0;
+	};
+	
+	self.prototype.update = function(dt) {
+		this.direction = Evo.VMath.subtract(this.actor.position, Evo.Mouse.getPosition());
+		this.distanceToMouse = this.direction.length();
+		this.speed = (Math.max(0, this.fleeDistance - this.distanceToMouse) / this.fleeSpeed);
+		
+		//Interpolate the speed
+		this.interpolationAmount = Math.min(1, 1 - dt / 500);
+		this.speed = this.speed + (this.prevSpeed - this.speed) * this.interpolationAmount;
+		
+		if(this.speed > 0) {
+			
+			//Normalize direction
+			//this.direction.divide(this.distanceToMouse);
+			
+			//Interpolate the direction
+			//this.direction.lerp(this.prevDirection.multiply(this.distanceToMouse), this.interpolationAmount);
+			
+			this.direction.normalize();
+			
+			
+			this.actor.addWeightedDirection(this.direction, this.weight);
+			this.actor.addWeightedSpeed(this.speed, this.weight);
+		} else {
+			this.speed = 0;
+		}
+		
+		this.prevDirection = this.direction;
+		this.prevSpeed = this.speed;
+		
+	}
+	
+	self.prototype.onAdd = function() {
+		
+	}
+	
+	self.prototype.onRemove = function() {
+		
+	}
+	
+	return self;
+})();
+
+Evo.States.GrowAndDivide = (function() {
+	
+	var self = function(actor, growthSpeed, divideSize) {
+		this.actor = actor;
+		this.growthSpeed = growthSpeed;
+		this.divideSize = divideSize;
+	};
+	
+	self.prototype.update = function(dt) {
+		
+		this.actor.size = this.actor.size + (this.growthSpeed * dt);
+		
+		if(this.actor.size > this.divideSize) {
+			//Make sure we don't get too big
+			this.actor.size = this.divideSize;
+			
+			Evo.CellFactory.divideCell(this.actor);
+		}
+	}
+	
+	self.prototype.onAdd = function() {
+		
+	}
+	
+	self.prototype.onRemove = function() {
+		
+	}
+	
+	return self;
+})();
 
 Evo.Vector = (function() {
 	var self = function(x,y) {
@@ -682,9 +680,11 @@ Evo.Vector = (function() {
 	
     /* normalize a vector */
     self.prototype.normalize  = function() {
-		var length   = this.length();
-		this.x = this.x / length;
-		this.y = this.y / length;
+		if(this.x !== 0 || this.y !== 0) {
+			var length   = this.length();
+			this.x = this.x / length;
+			this.y = this.y / length;
+		}
 		return this;
     }
 	
