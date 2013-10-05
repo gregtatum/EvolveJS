@@ -3,4 +3,6 @@
 
 This is an experiment to play around with some newer browser features like `requestAnimationFrame` and `canvas`, as well as an opportunity to write some artificial intelligence code using a finite state machine.
 
-[Working Example](http://cubicproject.com/canvas/)
+[Working Example](http://cubicproject.com/canvas/
+
+Project copyright (c) 2013 Greg Tatum under GPL v3
