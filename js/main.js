@@ -72,6 +72,7 @@ Evo.Loop = (function() {
             var index = this._updateListeners.indexOf(listener);
             if(index >= 0) {
                 this._updateListeners.splice(index,1);
+				this._updateLength--;
             }
         },
         
@@ -79,6 +80,7 @@ Evo.Loop = (function() {
             var index = this._drawListeners.indexOf(listener);
             if(index >= 0) {
                 this._drawListeners.splice(index,1);
+				this._drawLength--;
             }
         },
 		

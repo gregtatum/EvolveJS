@@ -4,8 +4,13 @@ Evo.Vector = (function() {
 		this.y = y;
 	}
 	
-	self.prototype.copy = function() {
+	self.prototype.clone = function() {
 		return new Evo.Vector(this.x, this.y);
+	}
+	
+	self.prototype.copy = function(vector) {
+		this.x = vector.x;
+		this.y = vector.y;
 	}
 
     self.prototype.multiply = function(value) {
@@ -69,7 +74,7 @@ Evo.Vector = (function() {
 	}
     
     self.prototype.distance = function(vectorRef) {
-		var vector = vectorRef.copy();
+		var vector = vectorRef.clone();
 		vector.subtract(this);
 		return vector.length();
 	}
@@ -106,14 +111,14 @@ Evo.VMath = (function() {
 		
 		multiply : function(vector, value) {
 			
-			var v = vector.copy();
+			var v = vector.clone();
 			v.multiply(value);
 			return v;
 		},
 		
 		divide : function(vector, value) {
 			
-			var v = vector.copy();
+			var v = vector.clone();
 			v.divide(value);
 			return v;
 		},
@@ -121,21 +126,21 @@ Evo.VMath = (function() {
 		
 		add : function(vector, value) {
 			
-			var v = vector.copy();
+			var v = vector.clone();
 			v.add(value);
 			return v;
 		},
 		
 		subtract : function(vector, value) {
 			
-			var v = vector.copy();
+			var v = vector.clone();
 			v.subtract(value);
 			return v;
 		},
 		
 		abs : function(vector) {
 			
-			var v = vector.copy();
+			var v = vector.clone();
 			v.abs();
 			return v;
 		},
@@ -149,7 +154,7 @@ Evo.VMath = (function() {
 		},
 		
 		distance : function(vector1, vector2) {
-			var vector = vector1.copy();
+			var vector = vector1.clone();
 			vector.subtract(vector2);
 			return vector.length();
 		},
@@ -163,14 +168,14 @@ Evo.VMath = (function() {
 			value should be in 0.0f - 1.0f space ( just to skip a clamp operation )
 		*/
 		lerp : function(vector1, vector2, interpolation) {
-			var v = vector1.copy();
+			var v = vector1.clone();
 			v.lerp(vector2, interpolation);
 			return v;
 		},
 		
 		/* normalize a vector */
 		normalize  : function(vector) {
-			var v = vector.copy();
+			var v = vector.clone();
 			v.normalize();
 			return v();
 		}

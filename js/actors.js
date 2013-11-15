@@ -3,7 +3,13 @@ Evo.CellFactory = (function() {
 	var self = function(scene) {
 			
 		this.scene = scene;
-		this.grid = new Evo.Grid(this.scene, 14, 13, this.scene.canvas.width, this.scene.canvas.height);
+		this.grid = new Evo.Grid(
+			this.scene,
+			6,
+			4,
+			this.scene.canvas.width,
+			this.scene.canvas.height
+		);
 		
 		this.numberOfCells = 10;
 		this.cells = [];
@@ -11,7 +17,8 @@ Evo.CellFactory = (function() {
 
 		this.generateCells();
 		
-		$(this.scene.canvas.el).click(this.restart.bind(this));
+		//$(this.scene.canvas.el).click(this.restart.bind(this));
+		$(this.scene.canvas.el).click(this.mouseKillCells.bind(this));
 	};
 	
 	//Public Methods
@@ -21,7 +28,7 @@ Evo.CellFactory = (function() {
 		// Registration Functions
 		
 		update : function(dt) {
-		
+			
 		},
 		
 		draw : function(dt) {
@@ -47,25 +54,51 @@ Evo.CellFactory = (function() {
         },
 				
 		restart : function() {
-			this.killCells();
+			this.killAllCells();
 			this.generateCells();
 		},
         
-        killCells : function() {
+		cellIsDead : function(cell) {
+			var i = this.cells.indexOf(cell);
 			
-            for(var i in this.cells) {
+			this.cells.splice(i, 1);
+		},
+		
+        killAllCells : function() {
+			
+			
+            for(var i=0, il = this.cells.length; i < il; i++) {
                 this.cells[i].kill();
             }
             this.cells.length = 0;
             
             this.generateCells();
         },
+				
+		mouseKillCells : function(e) {
+	
+			var click = new Evo.Vector(e.pageX, e.pageY);
+			
+			for(var i=0, il = this.cells.length; i < il; i++) {
+				
+				if(this.cells[i].position.distance(click) < 100) {
+					this.cells[i].kill();
+					this.cells.splice(i, 1);
+					il--;
+				}
+				
+				
+            }
+		},
 		
 		animateCell : function(cell) {
 			
 			cell.stateMachine.add(new Evo.States.Roam(cell));
 			cell.stateMachine.add(new Evo.States.FleeMouse(cell, this.scene.mouse, cell.dna.fleeSpeed, cell.dna.fleeDistance));
 			cell.stateMachine.add(new Evo.States.GrowAndDivide(cell, this, cell.dna.growthRate, cell.dna.divideSize));
+			//cell.stateMachine.add(new Evo.States.Boids(cell));
+			cell.stateMachine.add(new Evo.States.FleeWalls(cell, this.scene.canvas));
+			cell.stateMachine.add(new Evo.States.DieRandomly(cell, this));
 			
 		},
 		
@@ -102,6 +135,8 @@ Evo.Cell = (function() {
 		
 		this.stateMachine = new Evo.StateMachine();
 		this.position = new Evo.Vector(x,y);
+		this.direction = new Evo.Vector(1,0);
+		this.speed = new Evo.Vector(0,0);
 		
 		this.weightedDirection = new Evo.Vector(0,0);
 		
@@ -150,9 +185,13 @@ Evo.Cell = (function() {
 			this.dna = $.extend({}, dnaRef);
 		},
 		
-		addWeightedDirection : function(vector, weight) {			
+		addWeightedDirection : function(vector, weight) {		
+	
+			if(isNaN(this.weightedDirection.x)) debugger;
 			vector.multiply(weight);
-			this.weightedDirection.add(vector);			
+			this.weightedDirection.add(vector);
+			
+			if(isNaN(this.weightedDirection.x)) debugger;
 		},
 		
 		addWeightedSpeed : function(speed, weight) {
@@ -187,8 +226,12 @@ Evo.Cell = (function() {
 		},
 		
 		update_position : function(dt) {
+	
+			
+			if(isNaN(this.weightedDirection.x)) debugger;
 			
 			this.weightedDirection.normalize();
+			
 			
 			if(this.weightedSpeed.weight > 0) {
 				this.weightedSpeed.speed = this.weightedSpeed.speed / this.weightedSpeed.weight;
@@ -197,6 +240,11 @@ Evo.Cell = (function() {
 			this.position.add(
 				Evo.VMath.multiply(this.weightedDirection, dt * this.weightedSpeed.speed)
 			);
+			
+			if(isNaN(this.position.x)) debugger;
+			
+			this.direction.copy(this.weightedDirection);
+			this.speed.copy(this.weightedSpeed);
 			
 			this.weightedDirection.x = 0;
 			this.weightedDirection.y = 0;

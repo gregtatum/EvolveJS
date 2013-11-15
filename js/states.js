@@ -61,8 +61,123 @@ Evo.States.Roam = (function() {
 	};
 	
 	self.prototype.update = function() {
+		
+		this.direction.x = Math.min((Math.random() - 0.5) / 10 + this.direction.x, 1);
+		this.direction.y = Math.min((Math.random() - 0.5) / 10 + this.direction.y, 1);
+		
+		
 		this.actor.addWeightedDirection(this.direction, 1);
 		this.actor.addWeightedSpeed(this.speed, 1);
+	};
+	self.prototype.onAdd = function() {
+		
+	};
+	self.prototype.onRemove = function() {
+		
+	};
+	
+	return self;
+})();
+
+Evo.States.FleeWalls = (function() {
+	
+	var self = function(actor, canvas) {
+		this.actor = actor;
+		this.canvas = canvas;
+		
+		//The margin is a quarter of the document
+		this.MARGIN = (this.canvas.width + this.canvas.height) / 8;
+		this.direction = new Evo.Vector(0,0);
+		this.weight = 0;
+	};
+	
+	self.prototype.update = function() {
+		
+		this.direction.x = 0;
+		this.direction.y = 0;
+		
+		if(this.actor.position.x < this.MARGIN) {
+			this.direction.x = ((this.MARGIN - this.actor.position.x) / this.MARGIN);
+		}
+		if(this.actor.position.y < this.MARGIN) {
+			this.direction.y = ((this.MARGIN - this.actor.position.y) / this.MARGIN);
+		}
+		if(this.actor.position.x > this.canvas.width - this.MARGIN) {
+			this.direction.x = -1 * ((this.MARGIN - (this.canvas.width - this.actor.position.x)) / this.MARGIN);
+		}
+		if(this.actor.position.y > this.canvas.height - this.MARGIN) {
+			this.direction.y = -1 * ((this.MARGIN - (this.canvas.height - this.actor.position.y)) / this.MARGIN);
+		}
+		
+		//If there is a direction to go
+		if(this.direction.x !== 0 || this.direction.y !== 0) {
+			
+			//Crude/cheap weight calculator
+			this.weight = Math.pow((this.direction.x + this.direction.y), 2);
+			this.direction.normalize();
+
+			this.actor.addWeightedDirection(this.direction, this.weight * 4);
+		}
+	};
+	self.prototype.onAdd = function() {
+		
+	};
+	self.prototype.onRemove = function() {
+		
+	};
+	
+	return self;
+})();
+
+Evo.States.Boids = (function() {
+	
+	var self = function(actor) {
+		this.actor = actor;
+		
+		this.speed = 0.05;
+		this.neighborsDirection = new Evo.Vector(0,0);
+		this.neighborsPosition = new Evo.Vector(0,0);
+		this.neighborsPositionSum = new Evo.Vector(0,0);
+		
+		this.direction = new Evo.Vector(
+			(Math.random() * 2) - 1,
+			(Math.random() * 2) - 1
+		);
+		
+	};
+	
+	self.prototype.update = function() {
+		
+		if(!this.actor.gridNode) return;
+		
+		var	neighbors = this.actor.gridNode._nodeStack,
+			i = 0,
+			il = neighbors.length;
+	
+		this.neighborsDirection.x = 0;
+		this.neighborsDirection.y = 0;
+		
+		for(; i < il; i++) {
+			this.neighborsDirection.x += neighbors[i].direction.x;
+			this.neighborsDirection.y += neighbors[i].direction.y;
+			
+			this.neighborsPosition.x = neighbors[i].position.x - this.actor.position.x;
+			this.neighborsPosition.y = neighbors[i].position.y - this.actor.position.x;
+			
+			this.neighborsPosition.normalize();
+			
+			this.neighborsPositionSum.add(this.neighborsPosition);
+		}
+		
+		if(il > 0) this.neighborsPositionSum.divide(il);
+		
+		if(this.neighborsDirection.x > 0 || this.neighborsDirection.y > 0) {
+			this.neighborsDirection.normalize();
+		}
+		
+		this.actor.addWeightedDirection(this.neighborsDirection, 0.01);
+		this.actor.addWeightedDirection(this.neighborsPositionSum, 1);
+		//this.actor.addWeightedSpeed(this.speed, 1);
 	};
 	self.prototype.onAdd = function() {
 		
@@ -157,6 +272,33 @@ Evo.States.GrowAndDivide = (function() {
 			this.actor.size = this.divideSize;
 			
 			this.cellFactory.divideCell(this.actor);
+		}
+	};
+	
+	self.prototype.onAdd = function() {
+		
+	};
+	
+	self.prototype.onRemove = function() {
+		
+	};
+	
+	return self;
+})();
+
+
+Evo.States.DieRandomly = (function() {
+	
+	var self = function(actor, cellFactory) {
+		this.actor = actor;
+		this.cellFactory = cellFactory;
+	};
+	
+	self.prototype.update = function(dt) {
+		
+		if(Math.random() < 0.0005) {
+			this.cellFactory.cellIsDead(this.actor);
+			this.actor.kill();
 		}
 	};
 	
