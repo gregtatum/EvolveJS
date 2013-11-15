@@ -4,43 +4,44 @@ Evo.StateMachine = (function() {
 		this.currentStates = [];
 	};
 	
-	self.prototype.update = function(dt) {
-		for(var i in this.currentStates) {
-			this.currentStates[i].update(dt);
-		}
-	};
-	
-	self.prototype.add = function(state) {
-		if(this.currentStates.indexOf(state) >= 0) return; //Do not add twice
-		state.onAdd();
-		this.currentStates.push(state);
-	};
-	
-	self.prototype.remove = function(state) {
-		var index = this.currentStates.indexOf(state);
-		if(index >= 0) {
-			this.currentStates[index].onRemove();
-			this.currentStates.splice(index,1);
-		}
-	};
-	
-	self.prototype.has = function(state) {
-		return this.currentStates.indexOf(state) >= 0;
-	};
-	
-	self.prototype.kill = function() {
-		
-		//Run all states "kill" method if it exists
-		for(var i; i < this.currentStates.length; ++i) {
-			this.currentStates[i].actor = null;
-			if(typeof this.currentStates[i].kill === "function") {
-				this.currentStates[i].kill();
+	self.prototype = {
+		update : function(dt) {
+			for(var i in this.currentStates) {
+				this.currentStates[i].update(dt);
 			}
+		},
+
+		add : function(state) {
+			if(this.currentStates.indexOf(state) >= 0) return; //Do not add twice
+			state.onAdd();
+			this.currentStates.push(state);
+		},
+
+		remove : function(state) {
+			var index = this.currentStates.indexOf(state);
+			if(index >= 0) {
+				this.currentStates[index].onRemove();
+				this.currentStates.splice(index,1);
+			}
+		},
+
+		has : function(state) {
+			return this.currentStates.indexOf(state) >= 0;
+		},
+
+		kill : function() {
+
+			//Run all states "kill" method if it exists
+			for(var i; i < this.currentStates.length; ++i) {
+				this.currentStates[i].actor = null;
+				if(typeof this.currentStates[i].kill === "function") {
+					this.currentStates[i].kill();
+				}
+			}
+
+			this.currentStates.length = 0;
 		}
-		
-		this.currentStates.length = 0;
 	};
-	
 	return self;
 })();
 
@@ -75,13 +76,15 @@ Evo.States.Roam = (function() {
 
 Evo.States.FleeMouse = (function() {
 	
-	var self = function(actor, fleeSpeed, fleeDistance) {
+	var self = function(actor, mouse, fleeSpeed, fleeDistance) {
 		this.actor = actor;
+		this.mouse = mouse; //Evo.Mouse instance
 		
-		this.direction;
+		this.direction = undefined;
 		this.distanceToMouse = 0.0;
 		this.speed = 0.0;
-		this.weight = 2;
+		this.maxWeight = 2;
+		this.weight = 0;
 		this.fleeSpeed = fleeSpeed;
 		this.fleeDistance = fleeDistance;
 		
@@ -93,9 +96,11 @@ Evo.States.FleeMouse = (function() {
 	};
 	
 	self.prototype.update = function(dt) {
-		this.direction = Evo.VMath.subtract(this.actor.position, Evo.Browser.Mouse.getPosition());
+		this.direction = Evo.VMath.subtract(this.actor.position, this.mouse.getPosition());
 		this.distanceToMouse = this.direction.length();
-		this.speed = (Math.max(0, this.fleeDistance - this.distanceToMouse) / this.fleeSpeed);
+		
+		this.speed = Math.max(0, this.fleeDistance - this.distanceToMouse) / this.fleeSpeed;
+		this.weight = (Math.max(0, this.fleeDistance - this.distanceToMouse) / this.fleeDistance) * this.maxWeight;
 		
 		//Interpolate the speed
 		this.interpolationAmount = Math.min(1, 1 - dt / 500);
@@ -136,8 +141,9 @@ Evo.States.FleeMouse = (function() {
 
 Evo.States.GrowAndDivide = (function() {
 	
-	var self = function(actor, growthSpeed, divideSize) {
+	var self = function(actor, cellFactory, growthSpeed, divideSize) {
 		this.actor = actor;
+		this.cellFactory = cellFactory;
 		this.growthSpeed = growthSpeed;
 		this.divideSize = divideSize;
 	};
@@ -150,7 +156,7 @@ Evo.States.GrowAndDivide = (function() {
 			//Make sure we don't get too big
 			this.actor.size = this.divideSize;
 			
-			Evo.CellFactory.divideCell(this.actor);
+			this.cellFactory.divideCell(this.actor);
 		}
 	};
 	

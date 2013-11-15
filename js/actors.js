@@ -1,16 +1,21 @@
 Evo.CellFactory = (function() {
 	
-	var _numberOfCells = 10,
-        _cells = [],
-        _maxCells = 1500;
+	var self = function(scene) {
+			
+		this.scene = scene;
+		this.grid = new Evo.Grid(this.scene, 14, 13, this.scene.canvas.width, this.scene.canvas.height);
+		
+		this.numberOfCells = 10;
+		this.cells = [];
+		this.maxCells = 1500;
+
+		this.generateCells();
+		
+		$(this.scene.canvas.el).click(this.restart.bind(this));
+	};
 	
 	//Public Methods
-	var self = {
-		
-		onReady : function() {
-            self.generateCells();
-            $(Evo.canvas).click(self.killCells);
-		},
+	self.prototype = {
 		
 		//-------------------------------------
 		// Registration Functions
@@ -25,76 +30,95 @@ Evo.CellFactory = (function() {
         generateCells : function() {
             var cell;
             
-			for(var i=0; i < _numberOfCells; i++) {
-                cell = new Evo.Cell(Evo.canvas.width * Math.random(), Evo.canvas.height * Math.random());
+			for(var i=0; i < this.numberOfCells; i++) {
+				
+                cell = new Evo.Cell(
+					this.scene,
+					this.grid,
+					this.scene.canvas.width * Math.random(),
+					this.scene.canvas.height * Math.random()
+				);
+					
                 cell.generateDna();
-				self.animateCell(cell);
-				_cells.push(cell);
+				this.animateCell(cell);
+				this.cells.push(cell);
 				cell.i = i; //for debug
 			}
         },
+				
+		restart : function() {
+			this.killCells();
+			this.generateCells();
+		},
         
         killCells : function() {
-            for(var i in _cells) {
-                _cells[i].kill();
+			
+            for(var i in this.cells) {
+                this.cells[i].kill();
             }
-            _cells.length = 0;
+            this.cells.length = 0;
             
-            self.generateCells();
+            this.generateCells();
         },
 		
 		animateCell : function(cell) {
 			
 			cell.stateMachine.add(new Evo.States.Roam(cell));
-			//cell.stateMachine.add(new Evo.States.FleeMouse(cell, cell.dna.fleeSpeed, cell.dna.fleeDistance));
-			cell.stateMachine.add(new Evo.States.GrowAndDivide(cell, cell.dna.growthRate, cell.dna.divideSize));
+			cell.stateMachine.add(new Evo.States.FleeMouse(cell, this.scene.mouse, cell.dna.fleeSpeed, cell.dna.fleeDistance));
+			cell.stateMachine.add(new Evo.States.GrowAndDivide(cell, this, cell.dna.growthRate, cell.dna.divideSize));
 			
 		},
 		
         divideCell : function(cell) {
-            if(_cells.length > _maxCells) return;
+            if(this.cells.length > this.maxCells) return;
             
             //Copy the cell
-            daughterCell = new Evo.Cell(cell.position.x, cell.position.y);
+            var daughterCell = new Evo.Cell(
+				this.scene,
+				this.grid,
+				cell.position.x,
+				cell.position.y
+			);
             daughterCell.copyDna(cell.dna);
             
             //Revert to children
             cell.revert();
             daughterCell.revert();
-			self.animateCell(daughterCell);
+			this.animateCell(daughterCell);
             
-            _cells.push(daughterCell);
+            this.cells.push(daughterCell);
         }
 	};
 	
-	Evo.init(self);
 	return self;
 })();
 
 Evo.Cell = (function() {
 	
-	var self = function(x,y) {
+	var self = function(scene, grid, x, y) {
 		
+		this.scene = scene;
+		this.grid = grid;
+		
+		this.stateMachine = new Evo.StateMachine();
 		this.position = new Evo.Vector(x,y);
 		
 		this.weightedDirection = new Evo.Vector(0,0);
 		
 		this.weightedSpeed = {
 			speed	: 0,
-			weight	: 0,
+			weight	: 0
 		};
 		
-		this.stateMachine = new Evo.StateMachine();
-		
-		Evo.Loop.registerDraw(this);
-		Evo.Loop.registerUpdate(this);
+		this.scene.loop.registerDraw(this);
+		this.scene.loop.registerUpdate(this);
 	};
 	
 	self.prototype = {
 		kill : function() {
-			Evo.Loop.removeDraw(this);
-			Evo.Loop.removeUpdate(this);
-			
+			this.scene.loop.removeDraw(this);
+			this.scene.loop.removeUpdate(this);
+			this.grid.removeItem(this);
 			this.stateMachine.kill();
 		},
 		
@@ -108,17 +132,16 @@ Evo.Cell = (function() {
 			
 			this.dna = {
 				fleeSpeed       :   1000 * Math.random() + 500,
-				fillStyle       :   Evo.Worker.rgbToFillstyle(
+				fillStyle       :   Evo.Utilities.rgbToFillstyle(
 										parseInt(Math.random() * brightness, 10),
 										parseInt(Math.random() * brightness, 10),
 										parseInt(Math.random() * brightness, 10)
 									),
-				fleeSpeed       :   1000 * Math.random() + 500,
 				fleeDistance    :   (150 * Math.random()) + 180,
 				birthSize       :   birthSize,
 				growthRate      :   .005 * Math.random(),
 				divideSize      :   birthSize * 2.5
-			}
+			};
 			
 			this.revert();
 		},
@@ -138,18 +161,18 @@ Evo.Cell = (function() {
 		},
 		
 		draw : function(dt) {
-			Evo.context.beginPath();
-			Evo.context.fillStyle = this.dna.fillStyle;
-			Evo.context.fillRect(this.position.x, this.position.y, this.size, this.size);
+			
+			this.scene.canvas.context.beginPath();
+			this.scene.canvas.context.fillStyle = this.dna.fillStyle;
+			this.scene.canvas.context.fillRect(this.position.x, this.position.y, this.size, this.size);
 			
 			//Messing around
 			
-			//Evo.context.arc(this.position.x,this.position.y,this.size,0,2*Math.PI); 
-			
-			//Evo.context.font= (this.size * 5) + "px Arial";
-			//Evo.context.fillText("cell",this.position.x,this.position.y);
+			//this.scene.canvas.context.arc(this.position.x,this.position.y,this.size,0,2*Math.PI); 
+			//this.scene.canvas.context.font= (this.size * 5) + "px Arial";
+			//this.scene.canvas.context.fillText("cell",this.position.x,this.position.y);
  
-			Evo.context.fill();
+			this.scene.canvas.context.fill();
 		},
 		
 		//Updates
@@ -160,7 +183,7 @@ Evo.Cell = (function() {
 			this.update_position(dt);
 			this.update_keepOnScreen(dt);
 			
-			Evo.Browser.Canvas.grid.updateItem(this, this.position.x, this.position.y);
+			this.grid.updateItem(this, this.position.x, this.position.y);
 		},
 		
 		update_position : function(dt) {
@@ -183,10 +206,10 @@ Evo.Cell = (function() {
 		},
 		
 		update_keepOnScreen : function(dt) {
-			if(this.position.x <= 0) {this.position.x += Evo.canvas.width;}
-			if(this.position.y <= 0) {this.position.y += Evo.canvas.height;}
-			if(this.position.x > Evo.canvas.width) {this.position.x -= Evo.canvas.width;}
-			if(this.position.y > Evo.canvas.height) {this.position.y -= Evo.canvas.height;}
+			if(this.position.x <= 0) {this.position.x += this.scene.canvas.width;}
+			if(this.position.y <= 0) {this.position.y += this.scene.canvas.height;}
+			if(this.position.x > this.scene.canvas.width) {this.position.x -= this.scene.canvas.width;}
+			if(this.position.y > this.scene.canvas.height) {this.position.y -= this.scene.canvas.height;}
 		}
 	};
 	

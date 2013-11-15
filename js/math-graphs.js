@@ -181,13 +181,14 @@ Evo.VMath = (function() {
 
 Evo.Grid = (function() {
 	
-	var self = function(gridWidth, gridHeight, pixelWidth, pixelHeight) {
+	var self = function(scene, gridWidth, gridHeight, pixelWidth, pixelHeight) {
+		this.scene = scene;
 		this.gridWidth = gridWidth;
 		this.gridHeight = gridHeight;
 		this.pixelWidth = pixelWidth;
 		this.pixelHeight = pixelHeight;
 		
-		Evo.Loop.registerDraw(this);
+		this.scene.loop.registerDraw(this);
 		
 		this.create();
 	};
@@ -228,13 +229,26 @@ Evo.Grid = (function() {
 			this.gridNodes = null;
 		},
 		
+		removeItems : function(items) {
+			var i=items.length;
+			
+			while(i--) {
+				this.removeItem(items[i]);
+			}
+		},
+		removeItem : function(item) {	
+			if(item.gridNode) {
+				item.gridNode.remove(item);
+			}
+		},
+		
 		updateItem : function(item, pixelX, pixelY) {
 			var gridNode = this.pixelsToGridNode(pixelX, pixelY);
 			
 			if(gridNode !== item.gridNode) {
 				
 				if(item.gridNode) {
-					item.gridNode.remove(item)
+					item.gridNode.remove(item);
 				}
 				gridNode.add(item);
 			}
@@ -247,18 +261,18 @@ Evo.Grid = (function() {
 				tileWidth = this.pixelWidth / this.gridWidth,
 				tileHeight = this.pixelHeight / this.gridHeight;
 			
-			Evo.context.strokeStyle = "rgba(0,50,0,0.2)"
+			this.scene.canvas.context.strokeStyle = "rgba(0,50,0,0.2)";
 			
 			while(i--) {
 				j = this.gridHeight;
 				while(j--) {
-					Evo.context.fillStyle = "rgba(0,0,0,"+(0.05 * this.gridNodes[i][j].length())+")";
+					this.scene.canvas.context.fillStyle = "rgba(0,0,0,"+(0.05 * this.gridNodes[i][j].length())+")";
 					
 					startX = (i / this.gridWidth) * this.pixelWidth;
 					startY = (j / this.gridHeight) * this.pixelHeight;
 					
-					Evo.context.fillRect(startX, startY, tileWidth, tileHeight);
-					Evo.context.strokeRect(startX, startY, tileWidth, tileHeight);
+					this.scene.canvas.context.fillRect(startX, startY, tileWidth, tileHeight);
+					this.scene.canvas.context.strokeRect(startX, startY, tileWidth, tileHeight);
 				}
 			}
 					
@@ -338,7 +352,7 @@ Evo.GridNode = (function() {
 	self.prototype = {
 		add : function(item) {
 			//If in the stack
-			if(this._nodeStack.indexOf(item) == -1) {
+			if(this._nodeStack.indexOf(item) === -1) {
 				
 				this._nodeStack.push(item);
 				item.gridNode = this;
@@ -361,13 +375,13 @@ Evo.GridNode = (function() {
 		},
 		
 		length : function() {
-			return this._nodeStack.length
+			return this._nodeStack.length;
 		},
 		
 		destroy : function() {
 			this._nodeStack.length = 0;
 		}
-	}
+	};
 	
 	return self;
 })();

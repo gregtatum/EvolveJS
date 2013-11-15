@@ -1,54 +1,32 @@
-var Evo = (function () {
+var Evo = Evo || {};
 
-	var self = {
-		
-		//Run onInit and default handlers on passed object
-		init : function(object) {
-			
-			if(typeof object === "object") {
-				
-				if(typeof object.onInit === 'function') {
-					object.onInit();
-				}
-				
-				if(typeof object.onReady === 'function') {
-					$(document).ready(object.onReady);
-				}
-				
-				if(typeof object.onPageShow === 'function') {
-					$(document).on('pageshow.Evo', object.onPageShow);
-				}
-			}
-			
-		}
-	};
-	return self;
-})();
-
-Evo.Main = (function() {
+Evo.SceneGraph = (function() {
 	var self = function() {
 		$('document').ready(this.onReady.bind(this));
 	}
 	
 	self.prototype.onReady = function() {
-		//this.loop = new Evo.Loop();
+		this.loop = new Evo.Loop(this);
+		this.canvas = new Evo.Canvas();
+		this.mouse = new Evo.Mouse();
+		this.cellFactory = new Evo.CellFactory(this);
+		
+		this.loop.start();
 	}
 	
 	return self;
 })();
 
-new Evo.Main();
+var evo = new Evo.SceneGraph();
 
-Evo.canvas;
-Evo.context;
-
-
-Evo.LoopInstanced = (function() {
+Evo.Loop = (function() {
 	
-	var self = function() {
+	var self = function(scene) {
+		
+		this.scene = scene;
+		
 		//Create animation frame
-		this._animationFrame = 
-			window.requestAnimationFrame				||
+		this._animationFrame = window.requestAnimationFrame	||
 			window.webkitRequestAnimationFrame			||
 			window.mozRequestAnimationFrame   			||
 			window.oRequestAnimationFrame				||
@@ -57,6 +35,7 @@ Evo.LoopInstanced = (function() {
 				window.setInterval(callback, 1000/60);
 			};
 		
+			
 		this._isPlaying = false;
 		
 		//Listeners
@@ -71,20 +50,10 @@ Evo.LoopInstanced = (function() {
 		this._timePresent = 0;
 		this._timePast = 0;
 		this._dt = 0;
-	}
+	};
 	
 	//Public Methods
 	self.prototype = {
-		
-		onInit : function() {
-
-		},
-		
-		onReady : function() {
-			Evo.Browser.Canvas.init();
-			this.start();
-			this.stop();
-		},
 		
 		//-------------------------------------
 		// Registration Functions
@@ -136,12 +105,15 @@ Evo.LoopInstanced = (function() {
 		
 		//Looping logic
 		mainLoop : function() {
-			if(this._isPlaying)
-				this._animationFrame(this.mainLoop, Evo.canvas);
+			if(this._isPlaying) {
+				
+				//Calls the animation frame in the context of the window
+				this._animationFrame.call(window, this.mainLoop.bind(this), this.scene.canvas.el);
+			}
 			
 			this.updateTime();
 			this.runUpdateListeners(this._dt);
-			Evo.context.clearRect(0,0,Evo.canvas.width,Evo.canvas.height);
+			this.scene.canvas.context.clearRect(0,0,this.scene.canvas.width, this.scene.canvas.height);
 			this.runDrawListeners(this._dt);
 		},
 		
@@ -159,250 +131,126 @@ Evo.LoopInstanced = (function() {
 	return self;
 })();
 
-Evo.Loop = (function() {
+Evo.Canvas = (function() {
 	
-	//Private Variables
-	var _animationFrame,
-		_isPlaying = false,
+	var self = function() {
 		
-		//Listeners
-		_updateListeners = [],
-		_drawListeners = [],
-		_updateLength,
-		_drawLength,
-		_uI = 0, //Iterators
-		_dI = 0,
-		
-		//Timing
-		_timePresent = 0,
-		_timePast = 0,
-		_dt = 0;
-	
-	//Public Methods
-	var self = {
-		
-		onInit : function() {
-			_animationFrame = window.requestAnimationFrame	||
-				window.webkitRequestAnimationFrame			||
-				window.mozRequestAnimationFrame   			||
-				window.oRequestAnimationFrame				||
-				window.msRequestAnimationFrame				||
-				function( callback ){
-					window.setInterval(callback, 1000.0/60.0);
-				};
-		},
-		
-		onReady : function() {
-			Evo.Browser.Canvas.init();
-			self.start();
-			//self.stop();
-		},
-		
-		//-------------------------------------
-		// Registration Functions
-		
-		registerUpdate : function(listener) {
-			_updateListeners.push(listener);
-			_updateLength = _updateListeners.length;
-		},
-		
-		registerDraw : function(listener) {
-			_drawListeners.push(listener);
-			_drawLength = _drawListeners.length;
-		},
-        
-        removeUpdate : function(listener) {
-            var index = _updateListeners.indexOf(listener);
-            if(index >= 0) {
-                _updateListeners.splice(index,1);
-            }
-        },
-        
-        removeDraw : function(listener) {
-            var index = _drawListeners.indexOf(listener);
-            if(index >= 0) {
-                _drawListeners.splice(index,1);
-            }
-        },
-		
-		//-------------------------------------
-		// Looping functions
-		
-		updateTime : function() {
-			_timePresent = new Date().getTime();
-			_dt = _timePresent - _timePast;
-			_timePast = _timePresent;
-		},
-		
-		runUpdateListeners : function() {
-			for(_uI = 0; _uI < _updateLength; ++_uI) {
-				_updateListeners[_uI].update(_dt);
-			}
-		},
-		
-		runDrawListeners : function() {
-			for(_dI = 0; _dI < _drawLength; ++_dI) {
-				_drawListeners[_dI].draw(_dt);
-			}
-		},
-		
-		//Looping logic
-		mainLoop : function() {
-			if(_isPlaying)
-				_animationFrame(self.mainLoop, Evo.canvas);
-			
-			self.updateTime();
-			self.runUpdateListeners(_dt);
-			Evo.context.clearRect(0,0,Evo.canvas.width,Evo.canvas.height);
-			self.runDrawListeners(_dt);
-		},
-		
-		start : function() {
-			_isPlaying = true;
-			_timePast = new Date().getTime();
-			self.mainLoop();
-		},
-		
-		stop : function() {
-			_isPlaying = false;
-		}
+		this.ratio = window['devicePixelRatio'] >= 1 ? window.devicePixelRatio : 1;
+
+		this.el = $('canvas').get(0);
+		this.resize();
+		this.context = this.el.getContext('2d');
+
+		$(window).on('resize', this.resize.bind(this));
 	};
 	
-	Evo.init(self);
-	return self;
-})();
-
-Evo.Browser = {};
-
-Evo.Browser.Canvas = (function() {
-	
 	//Public Methods
-	var self = {
-		
-		init : function() {
-		
-			var ratio = window['devicePixelRatio'] >= 1 ? window.devicePixelRatio : 1;
-          
-			Evo.canvas = $('canvas').get(0);
-			Evo.canvas.width = $(window).width() * ratio;
-			Evo.canvas.height = $(window).height() * ratio;
-			Evo.context = Evo.canvas.getContext('2d');
-			
-			this.grid = new Evo.Grid(14, 13, Evo.canvas.width, Evo.canvas.height);
-			
-			$(window).on('resize', self.resize);
-		},
+	self.prototype = {
 		
 		resize : function() {
-			Evo.canvas.width = $(window).width();
-			Evo.canvas.height = $(window).height();	
+			this.el.width = $(window).width() * this.ratio;
+			this.el.height = $(window).height() * this.ratio;
+			this.width = this.el.width;
+			this.height = this.el.height;
+			
 		}
 	};
 	
 	return self;
 })();
 
-Evo.Browser.Mouse = (function() {
+Evo.Mouse = (function() {
 	
-	var _position;
+	var self = function() {
+		this.position = new Evo.Vector(-10000, -10000);
+			 
+		document.addEventListener('mousemove', this.onMouseMove.bind(this));
+		document.addEventListener('touchmove', this.onTouchMove.bind(this));
+		document.addEventListener('touchend', this.onTouchEnd.bind(this));
+
+		document.ontouchstart = function(e){ 
+			e.preventDefault(); 
+		};
+	};
 	
 	//Public Methods
-	var self = {
-		
-		onReady : function() {
-			_position = new Evo.Vector(-10000, -10000);
-			 
-            document.addEventListener('mousemove', self.onMouseMove);
-            document.addEventListener('touchmove', self.onTouchMove);
-            document.addEventListener('touchend', self.onTouchEnd);
-            
-            document.ontouchstart = function(e){ 
-                e.preventDefault(); 
-            };
-		},
+	self.prototype = {
 		
 		onMouseMove : function(e) {
-			if(typeof(e.pageX) == "number") {
-				_position.x = e.pageX;
-				_position.y = e.pageY;
+			if(typeof(e.pageX) === "number") {
+				this.position.x = e.pageX;
+				this.position.y = e.pageY;
             } else {
-				_position.x = -100000;
-				_position.y = -100000;
+				this.position.x = -100000;
+				this.position.y = -100000;
 			}
 		},
         
         onTouchMove : function(e) {
             if(e.touches) {
-                _position.x = e.touches[0].pageX;
-				_position.y = e.touches[0].pageY;                
-            }
+				this.position.x = e.touches[0].pageX;
+				this.position.y = e.touches[0].pageY;                
+			}
         },
         
         onTouchEnd : function(e) {
-            _position.x = -100000;
-            _position.y = -100000;
+            this.position.x = -100000;
+            this.position.y = -100000;
         },
         
 		getPosition : function() {
-			return _position;
+			return this.position;
 		},
 		
 		getX : function() {
-			return _position.x;
+			return this.position.x;
 		},
 		
 		getY : function() {
-			return _position.y;
+			return this.position.y;
 		}
 	};
 	
-	Evo.init(self);
 	return self;
 })();
 
 //Collection of worker functions
-Evo.Worker = (function() {
-	
-	//Public Methods
-	var self = {
+Evo.Utilities = {
 		
-		extend : function(child, parent) {
-			$().extend(child.prototype, child.prototype, parent.prototype);
-			child.prototype.parent = parent;
-		},
-		
-		rgbToFillstyle : function(r, g, b, a) {
-            if(a === undefined) {
-                return ["rgb(",r,",",g,",",b,")"].join('');
-            } else {
-                return ["rgba(",r,",",g,",",b,",",a,")"].join('');
-            }
-		}
- 
-	};
-	
-	return self;
-})();
+	extend : function(child, parent) {
+		$().extend(child.prototype, child.prototype, parent.prototype);
+		child.prototype.parent = parent;
+	},
 
-Evo.Worker.Examples = {};
+	rgbToFillstyle : function(r, g, b, a) {
+		if(a === undefined) {
+			return ["rgb(",r,",",g,",",b,")"].join('');
+		} else {
+			return ["rgba(",r,",",g,",",b,",",a,")"].join('');
+		}
+	}
+
+};
+
+Evo.Utilities.Examples = {};
 
 //Subclassing example
-Evo.Worker.Examples.Parent = (function() {
+Evo.Utilities.Examples.Parent = (function() {
 	console.log('defining parent');
 	var self = function(name) {
 		this.name = name;
 		console.log(this.name + ' creating parent');
-	}
+	};
 	self.prototype = {
 		scold : function() {
 			console.log(this.name + ' parent is scolding');
 		}
-	}
+	};
 	return self;
 })();
 	
 //Subclassing example	
-Evo.Worker.Examples.Child = (function() { //Subclasses Evo.Example.Parent
+Evo.Utilities.Examples.Child = (function() { //Subclasses Evo.Example.Parent
 	
 	console.log('defining child');
 	
@@ -417,7 +265,7 @@ Evo.Worker.Examples.Child = (function() { //Subclasses Evo.Example.Parent
 		}
 	}
 	
-	Evo.Worker.extend(self, Evo.Worker.Examples.Parent);
+	Evo.Utilities.extend(self, Evo.Utilities.Examples.Parent);
 	
 	return self;
 })();
