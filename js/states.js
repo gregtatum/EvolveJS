@@ -93,7 +93,7 @@ Evo.States.FleeMouse = (function() {
 	};
 	
 	self.prototype.update = function(dt) {
-		this.direction = Evo.VMath.subtract(this.actor.position, Evo.Mouse.getPosition());
+		this.direction = Evo.VMath.subtract(this.actor.position, Evo.Browser.Mouse.getPosition());
 		this.distanceToMouse = this.direction.length();
 		this.speed = (Math.max(0, this.fleeDistance - this.distanceToMouse) / this.fleeSpeed);
 		

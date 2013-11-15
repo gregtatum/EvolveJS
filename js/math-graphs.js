@@ -252,7 +252,7 @@ Evo.Grid = (function() {
 			while(i--) {
 				j = this.gridHeight;
 				while(j--) {
-					Evo.context.fillStyle = "rgba(0,0,0,"+(0.1 * this.gridNodes[i][j].length())+")";
+					Evo.context.fillStyle = "rgba(0,0,0,"+(0.05 * this.gridNodes[i][j].length())+")";
 					
 					startX = (i / this.gridWidth) * this.pixelWidth;
 					startY = (j / this.gridHeight) * this.pixelHeight;

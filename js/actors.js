@@ -141,6 +141,14 @@ Evo.Cell = (function() {
 			Evo.context.beginPath();
 			Evo.context.fillStyle = this.dna.fillStyle;
 			Evo.context.fillRect(this.position.x, this.position.y, this.size, this.size);
+			
+			//Messing around
+			
+			//Evo.context.arc(this.position.x,this.position.y,this.size,0,2*Math.PI); 
+			
+			//Evo.context.font= (this.size * 5) + "px Arial";
+			//Evo.context.fillText("cell",this.position.x,this.position.y);
+ 
 			Evo.context.fill();
 		},
 		
@@ -152,7 +160,7 @@ Evo.Cell = (function() {
 			this.update_position(dt);
 			this.update_keepOnScreen(dt);
 			
-			Evo.Canvas.grid.updateItem(this, this.position.x, this.position.y);
+			Evo.Browser.Canvas.grid.updateItem(this, this.position.x, this.position.y);
 		},
 		
 		update_position : function(dt) {
