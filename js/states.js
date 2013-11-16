@@ -53,7 +53,8 @@ Evo.States.Roam = (function() {
 		this.actor = actor;
 		
 		this.speed = 0.05;
-		this.direction = new Evo.Vector(
+		this.direction = new THREE.Vector3(
+			(Math.random() * 2) - 1,
 			(Math.random() * 2) - 1,
 			(Math.random() * 2) - 1
 		);
@@ -64,6 +65,7 @@ Evo.States.Roam = (function() {
 		
 		this.direction.x = Math.min((Math.random() - 0.5) / 10 + this.direction.x, 1);
 		this.direction.y = Math.min((Math.random() - 0.5) / 10 + this.direction.y, 1);
+		this.direction.z = Math.min((Math.random() - 0.5) / 10 + this.direction.z, 1);
 		
 		
 		this.actor.addWeightedDirection(this.direction, 1);
@@ -86,37 +88,31 @@ Evo.States.FleeWalls = (function() {
 		this.canvas = canvas;
 		
 		//The margin is a quarter of the document
-		this.MARGIN = (this.canvas.width + this.canvas.height) / 8;
-		this.direction = new Evo.Vector(0,0);
+		this.MARGIN = 0;
+		this.origin = new THREE.Vector3(0,0,0);
+		this.direction = new THREE.Vector3(0,0,0);
+		this.distance = 0;
+		this.fleeStarts = 100;
+		this.fleeEnds = 300;
+		this.fleeMargin = this.fleeEnds - this.fleeStarts;
+		
+		this.direction = new THREE.Vector3(0,0,0);
 		this.weight = 0;
 	};
 	
 	self.prototype.update = function() {
 		
-		this.direction.x = 0;
-		this.direction.y = 0;
-		
-		if(this.actor.position.x < this.MARGIN) {
-			this.direction.x = ((this.MARGIN - this.actor.position.x) / this.MARGIN);
-		}
-		if(this.actor.position.y < this.MARGIN) {
-			this.direction.y = ((this.MARGIN - this.actor.position.y) / this.MARGIN);
-		}
-		if(this.actor.position.x > this.canvas.width - this.MARGIN) {
-			this.direction.x = -1 * ((this.MARGIN - (this.canvas.width - this.actor.position.x)) / this.MARGIN);
-		}
-		if(this.actor.position.y > this.canvas.height - this.MARGIN) {
-			this.direction.y = -1 * ((this.MARGIN - (this.canvas.height - this.actor.position.y)) / this.MARGIN);
-		}
+		this.distance = this.origin.distanceTo(this.actor.object3d.position);
 		
 		//If there is a direction to go
-		if(this.direction.x !== 0 || this.direction.y !== 0) {
+		if(this.distance > this.fleeStarts) {
 			
 			//Crude/cheap weight calculator
-			this.weight = Math.pow((this.direction.x + this.direction.y), 2);
-			this.direction.normalize();
+			this.weight = Math.max(this.fleeMargin - (this.distance - this.fleeStarts), 0) / this.fleeMargin;
+			
+			this.direction.copy(this.actor.object3d.position).normalize().negate();
 
-			this.actor.addWeightedDirection(this.direction, this.weight * 4);
+			this.actor.addWeightedDirection(this.direction, 1);
 		}
 	};
 	self.prototype.onAdd = function() {
@@ -135,11 +131,11 @@ Evo.States.Boids = (function() {
 		this.actor = actor;
 		
 		this.speed = 0.05;
-		this.neighborsDirection = new Evo.Vector(0,0);
-		this.neighborsPosition = new Evo.Vector(0,0);
-		this.neighborsPositionSum = new Evo.Vector(0,0);
+		this.neighborsDirection = new THREE.Vector3(0,0);
+		this.neighborsPosition = new THREE.Vector3(0,0);
+		this.neighborsPositionSum = new THREE.Vector3(0,0);
 		
-		this.direction = new Evo.Vector(
+		this.direction = new THREE.Vector3(
 			(Math.random() * 2) - 1,
 			(Math.random() * 2) - 1
 		);
@@ -161,8 +157,8 @@ Evo.States.Boids = (function() {
 			this.neighborsDirection.x += neighbors[i].direction.x;
 			this.neighborsDirection.y += neighbors[i].direction.y;
 			
-			this.neighborsPosition.x = neighbors[i].position.x - this.actor.position.x;
-			this.neighborsPosition.y = neighbors[i].position.y - this.actor.position.x;
+			this.neighborsPosition.x = neighbors[i].object3d.position.x - this.actor.object3d.position.x;
+			this.neighborsPosition.y = neighbors[i].object3d.position.y - this.actor.object3d.position.x;
 			
 			this.neighborsPosition.normalize();
 			
@@ -205,13 +201,13 @@ Evo.States.FleeMouse = (function() {
 		
 		this.currentWeight;
 		
-		this.prevDirection = new Evo.Vector(0,0);
+		this.prevDirection = new THREE.Vector3(0,0);
 		this.prevSpeed = 0.0;
 		this.interpolationAmount = 1.0;
 	};
 	
 	self.prototype.update = function(dt) {
-		this.direction = Evo.VMath.subtract(this.actor.position, this.mouse.getPosition());
+		this.direction = Evo.VMath.subtract(this.actor.object3d.position, this.mouse.getPosition());
 		this.distanceToMouse = this.direction.length();
 		
 		this.speed = Math.max(0, this.fleeDistance - this.distanceToMouse) / this.fleeSpeed;

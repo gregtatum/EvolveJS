@@ -5,14 +5,91 @@ Evo.SceneGraph = (function() {
 		$('document').ready(this.onReady.bind(this));
 	}
 	
-	self.prototype.onReady = function() {
-		this.loop = new Evo.Loop(this);
-		this.canvas = new Evo.Canvas();
-		this.mouse = new Evo.Mouse();
-		this.cellFactory = new Evo.CellFactory(this);
+	self.prototype = {
 		
-		this.loop.start();
-	}
+		
+		onReady : function() {
+
+			this.renderer = undefined;
+			this.div = document.getElementById('evo');
+			this.scene = new THREE.Scene();
+			this.camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 3000); //(fov, aspect ratio, near, far frustrum)
+			this.camera.position.z = 400;
+			this.controls = new THREE.TrackballControls( this.camera );
+			
+			this.addRenderer();
+			this.addLights();
+			//this.addGrid();
+			
+			this.loop = new Evo.Loop(this);
+			this.mouse = new Evo.Mouse();
+			this.cellFactory = new Evo.CellFactory(this);
+
+			this.loop.start();
+		},
+				
+		addLights : function() {
+			this.lights = [];
+			this.lights[0] = new THREE.AmbientLight( 0xffffff );
+			this.lights[1] = new THREE.PointLight( 0xffffff, 1, 0 );
+			this.lights[2] = new THREE.PointLight( 0xffffff, 1, 0 );
+			this.lights[3] = new THREE.PointLight( 0xffffff, 1, 0 );
+
+			this.lights[1].position.set(0, 200, 0);
+			this.lights[2].position.set(100, 200, 100);
+			this.lights[3].position.set(-100, -200, -100);
+
+			//this.scene.add( this.lights[0] );
+			this.scene.add( this.lights[1] );
+			this.scene.add( this.lights[2] );
+			this.scene.add( this.lights[3] );
+		},
+				
+		addGrid : function() {
+
+			var line_material = new THREE.LineBasicMaterial( { color: 0x303030 } ),
+				geometry = new THREE.Geometry(),
+				floor = -75, step = 25;
+
+			for ( var i = 0; i <= 40; i ++ ) {
+
+				geometry.vertices.push( new THREE.Vector3( - 500, floor, i * step - 500 ) );
+				geometry.vertices.push( new THREE.Vector3(   500, floor, i * step - 500 ) );
+
+				geometry.vertices.push( new THREE.Vector3( i * step - 500, floor, -500 ) );
+				geometry.vertices.push( new THREE.Vector3( i * step - 500, floor,  500 ) );
+
+			}
+
+			this.grid = new THREE.Line( geometry, line_material, THREE.LinePieces );
+			this.scene.add( this.grid );
+
+		},
+		
+		addRenderer : function() {
+			this.renderer = new THREE.WebGLRenderer();
+			this.renderer.setSize( window.innerWidth, window.innerHeight );
+			this.div.appendChild( this.renderer.domElement );
+		},
+		
+		addEventListeners : function() {
+			$(window).on('resize', this.resizeHandler.bind(this));
+		},
+		
+		resizeHandler : function() {
+			
+			this.camera.aspect = window.innerWidth / window.innerHeight;
+			this.camera.updateProjectionMatrix();
+
+			this.renderer.setSize( window.innerWidth, window.innerHeight );
+
+		},
+		
+		render : function() {
+			this.controls.update();
+			this.renderer.render( this.scene, this.camera );
+		}
+	};
 	
 	return self;
 })();
@@ -110,13 +187,15 @@ Evo.Loop = (function() {
 			if(this._isPlaying) {
 				
 				//Calls the animation frame in the context of the window
-				this._animationFrame.call(window, this.mainLoop.bind(this), this.scene.canvas.el);
+				this._animationFrame.call(window, this.mainLoop.bind(this), this.scene.renderer.domElement);
 			}
 			
 			this.updateTime();
 			this.runUpdateListeners(this._dt);
-			this.scene.canvas.context.clearRect(0,0,this.scene.canvas.width, this.scene.canvas.height);
-			this.runDrawListeners(this._dt);
+			//this.scene.canvas.context.clearRect(0,0,this.scene.canvas.width, this.scene.canvas.height);
+			//this.runDrawListeners(this._dt);
+			
+			this.scene.render();
 		},
 		
 		start : function() {
@@ -127,34 +206,6 @@ Evo.Loop = (function() {
 		
 		stop : function() {
 			this._isPlaying = false;
-		}
-	};
-	
-	return self;
-})();
-
-Evo.Canvas = (function() {
-	
-	var self = function() {
-		
-		this.ratio = window['devicePixelRatio'] >= 1 ? window.devicePixelRatio : 1;
-
-		this.el = $('canvas').get(0);
-		this.resize();
-		this.context = this.el.getContext('2d');
-
-		$(window).on('resize', this.resize.bind(this));
-	};
-	
-	//Public Methods
-	self.prototype = {
-		
-		resize : function() {
-			this.el.width = $(window).width() * this.ratio;
-			this.el.height = $(window).height() * this.ratio;
-			this.width = this.el.width;
-			this.height = this.el.height;
-			
 		}
 	};
 	
