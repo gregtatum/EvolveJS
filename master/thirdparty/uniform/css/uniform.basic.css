@@ -1,0 +1,403 @@
+/* General settings */
+
+div.selector,
+div.checker,
+div.button,
+div.radio,
+div.uploader {
+	display: -moz-inline-box;
+	display: inline-block;
+	*display: inline;
+	zoom: 1;
+	vertical-align: middle;
+	/* Keeping this as :focus to remove browser styles */
+}
+div.selector: focus, div.checker: focus, div.button: focus, div.radio: focus, div.uploader: focus {
+	outline: 0;
+}
+div.selector,
+div.selector *,
+div.radio,
+div.radio *,
+div.checker,
+div.checker *,
+div.uploader,
+div.uploader *,
+div.button,
+div.button * {
+	margin: 0;
+	padding: 0;
+}
+.highContrastDetect {
+	width: 0px;
+	height: 0px;
+}
+/* Input & Textarea */
+
+input.uniform-input,
+select.uniform-multiselect,
+textarea.uniform {
+	padding: 0.3em;
+	outline: 0;
+}
+input.uniform-input.active,
+select.uniform-multiselect.active,
+textarea.uniform.active {
+	
+}
+/* Remove default webkit and possible mozilla .search styles.
+ * Keeping this as :active to remove browser styles */
+
+div.checker input,
+input[type="search"],
+input[type="search"]: active {
+	-moz-appearance: none;
+	-webkit-appearance: none;
+}
+/* Select */
+
+div.selector {
+	line-height: 2em;
+	height: 2em;
+	padding: 0 0.5em;
+	position: relative;
+	overflow: hidden;
+	border-radius: 0.5em;
+	background: #eee;
+	border: solid 1px #aaa;
+	cursor: pointer;
+	position: relative;
+}
+div.selector span {
+	text-overflow: ellipsis;
+	display: block;
+	overflow: hidden;
+	white-space: nowrap;
+	padding-right: 2em;
+	cursor: pointer;
+	width: 100%;
+	display: block;
+	background: none;
+}
+div.selector.fixedWidth {
+	width: 190px;
+}
+div.selector.fixedWidth span {
+	width: 155px;
+}
+div.selector select {
+	opacity: 0;
+	filter: alpha(opacity=0);
+	-moz-opacity: 0;
+	border: none;
+	background: none;
+	position: absolute;
+	height: 22px;
+	top: 2px;
+	left: 0px;
+	width: 100%;
+	cursor: pointer;
+}
+div.selector.hover,
+div.selector.focus {
+	background-color:#fff;
+}
+
+/* Checkbox */
+
+div.checker {
+	position: relative;
+}
+div.checker,
+div.checker span,
+div.checker input {
+	width: 1em;
+	height: 1em;
+}
+div.checker span {
+	display: -moz-inline-box;
+	display: inline-block;
+	*display: inline;
+	zoom: 1;
+	text-align: center;
+	background: #eee;
+	border: 1px solid #aaa;
+}
+div.checker span.checked:after {
+    content: 'x';
+    line-height: 0;
+    margin: 0;
+    font-family: sans-serif;
+    display: block;
+    margin-top: -0.5em;
+}
+div.checker input {
+	opacity: 0;
+	filter: alpha(opacity=0);
+	-moz-opacity: 0;
+	border: none;
+	background: none;
+	display: -moz-inline-box;
+	display: block;
+	*display: inline;
+	zoom: 1;
+	width: 100%;
+	height: 100%;
+	cursor:pointer;
+}
+div.checker.hover span,
+div.checker.focus span {
+	background-color:#fff;
+}
+/* Radio */
+
+div.radio {
+	position: relative;
+}
+div.radio,
+div.radio span,
+div.radio input {
+	width: .4em;
+	height: .4em;
+}
+div.radio span {
+	display: -moz-inline-box;
+	display: inline-block;
+	*display: inline;
+	zoom: 1;
+	text-align: center;
+	border-radius: 1em;
+	background: #eee;
+	border: 0.3em solid #eee;
+	box-shadow: 0 0 0 1px #aaa;
+}
+div.radio span.checked {
+	background-color:#000;
+}
+div.radio input {
+	opacity: 0;
+	filter: alpha(opacity=0);
+	-moz-opacity: 0;
+	border: none;
+	background: none;
+	display: -moz-inline-box;
+	display: inline-block;
+	*display: inline;
+	zoom: 1;
+	text-align: center;
+	width: 1.5em;
+	height: 1.5em;
+	margin-left: -0.5em;
+	margin-top: -0.5em;
+	cursor: pointer;
+}
+div.radio.hover span,
+div.radio.focus span {
+	border-color:#fff;
+	background-color:#fff;
+}
+div.radio.hover span.checked,
+div.radio.focus span.checked {
+	background-color:#000;
+}
+/* Uploader */
+
+div.uploader {
+	cursor: pointer;
+	position: relative;
+	overflow: hidden;
+	width: 100%;
+	background: none;
+	border: 1px #999 solid;
+	border-radius:0.5em;
+}
+div.uploader span.action {
+	line-height: 2em;
+	width: 50%;
+	text-align: center;
+	float: right;
+	display: inline;
+	overflow: hidden;
+	cursor: pointer;
+	background: #eee;
+	font-weight: bold;
+	height: 2em;
+}
+div.uploader span.filename {
+	text-overflow: ellipsis;
+	display: block;
+	overflow: hidden;
+	white-space: nowrap;
+	float: left;
+	cursor: pointer;
+	margin: 0;
+	line-height: 2em;
+	height: 2em;
+	width: 44%;
+	padding: 0 3%;
+}
+div.uploader input {
+	opacity: 0;
+	filter: alpha(opacity=0);
+	-moz-opacity: 0;
+	border: none;
+	background: none;
+	position: absolute;
+	top: 0;
+	right: 0;
+	float: right;
+	cursor: pointer;
+	width: 100%;
+	height: 100%;
+}
+div.uploader.hover span.action,
+div.uploader.focus span.action {
+    background: none;
+    background-color: #ddd;
+}
+/* Buttons */
+
+div.button {
+	cursor: pointer;
+	position: relative;
+	/* Keep buttons barely visible so they can get focus */
+	height: 2em;
+	margin-bottom: 2px;
+}
+div.button a,
+div.button button,
+div.button input {
+	opacity: 0.01;
+	filter: alpha(opacity=1);
+	-moz-opacity: 0.01;
+	display: block;
+	top: 0;
+	left: 0;
+	position: absolute;
+	width: 100%;
+	line-height: 6.5;
+	font-size: 10pt;
+}
+div.button input {
+	width: 100%;
+	height: 100%;
+	color: #000;
+	background: none;
+	font-size: 0;
+	margin: 0;
+	padding: 0;
+	left: 0;
+	top: 0;
+	border: none;
+	position: absolute;
+	border-radius: 0;
+	cursor: pointer;
+}
+div.button span {
+	display: -moz-inline-box;
+	display: block;
+	*display: inline;
+	zoom: 1;
+	line-height: 2;
+	text-align: center;
+	height: inherit;
+	padding: 0 1em;
+	background: #eee;
+	border: 1px solid #aaa;
+	border-radius: 0.5em;
+}
+div.button.hover span,
+div.button.focus span {
+	background-color:#fff;
+}
+div.button.disabled span,
+div.button.disabled.active span {
+	color: #aaa;
+	cursor: default;
+}
+/* INPUT & TEXTAREA */
+
+input.uniform-input,
+select.uniform-multiselect,
+textarea.uniform {
+	border: solid 1px #aaa;
+}
+input.uniform-input.hover,
+input.uniform-input.focus,
+select.uniform-multiselect.hover,
+select.uniform-multiselect.focus,
+textarea.uniform.hover,
+textarea.uniform.focus {
+	border-color: #999;
+}
+/* PRESENTATION */
+
+/* Buttons */
+
+div.button span {
+	font-weight: bold;
+	font-size: 1em;
+}
+div.button.hover span,
+div.button.focus span {
+	color: #555;
+}
+div.button.disabled span,
+div.button.disabled.active span {
+	color: #bbb;
+}
+/* Select */
+
+ {
+}
+div.selector span {
+}
+div.selector select {
+}
+div.selector.disabled span,
+div.selector.disabled.active span {
+	color: #bbb;
+}
+/* Checker */
+
+div.checker {
+	margin-right: 5px;
+}
+/* Radio */
+
+div.radio {
+	margin-right: .5em;
+	margin-top: -0.7em;
+}
+/* Uploader */
+
+ {
+}
+div.uploader span.filename {
+	/* border-right: solid 1px #bbb; */
+}
+div.uploader.disabled span.action,
+div.uploader.disabled.active span.action {
+	color: #aaa;
+}
+div.uploader.disabled span.filename,
+div.uploader.disabled.active span.filename {
+	border-color: #ddd;
+	color: #aaa;
+}
+input.uniform-input,
+input.uniform-input: focus {
+	background-color: #fff;
+}
+div.selector:after {
+    display: block;
+    position: absolute;
+    border-color: #000 transparent transparent transparent;
+    border-style: solid;
+    width: 0;
+    height: 0;
+    top: 0.75em;
+    right: 0.75em;
+    content: "";
+    border-width: 0.5em 0.5em 0 0.5em;
+}

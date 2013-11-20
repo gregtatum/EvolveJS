@@ -1,0 +1,91 @@
+@charset "UTF-8";
+html {
+	height:100%;
+	width:100%;
+}
+body * {
+	box-sizing: border-box;
+}
+body {
+	margin:0;
+	padding:0;
+    overflow:hidden;
+	font-family: 'Roboto', sans-serif;
+	position:relative;
+	height:100%;
+	width:100%;
+	
+	background: #484b4c; /* Old browsers */
+	background: -moz-linear-gradient(top,  #484b4c 0%, #3c3f40 100%); /* FF3.6+ */
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#484b4c), color-stop(100%,#3c3f40)); /* Chrome,Safari4+ */
+	background: -webkit-linear-gradient(top,  #484b4c 0%,#3c3f40 100%); /* Chrome10+,Safari5.1+ */
+	background: -o-linear-gradient(top,  #484b4c 0%,#3c3f40 100%); /* Opera 11.10+ */
+	background: -ms-linear-gradient(top,  #484b4c 0%,#3c3f40 100%); /* IE10+ */
+	background: linear-gradient(to bottom,  #484b4c 0%,#3c3f40 100%); /* W3C */
+	
+	color: #909b9f;
+	font-size: 14px;
+	text-shadow:1px 1px 3px rgba(0,0,0,0.5);
+}
+.menu {
+	width:200px;
+	min-height:100%;
+	
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#484b4c', endColorstr='#3c3f40',GradientType=0 ); /* IE6-9 */
+	position:relative;
+	padding: 1em;
+}
+canvas {
+	background-color: #fff;
+	position: absolute;
+	top: 0;
+	left: 200px;
+}
+.clearfix:before,
+.clearfix:after {
+	content:"";
+	display:table;
+}
+.clearfix:after {
+	clear:both;
+}
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 100;
+    color: aliceblue;
+}
+h1 > span {
+	color:#909b9f;
+	font-size: 0.75em;
+	text-transform: uppercase;
+	font-weight: 300;
+}
+.menu-title {
+    margin: 0;
+    font-size: 4em;
+    text-align: center;
+}
+.menu-subtitle {
+    text-transform: uppercase;
+    font-size: 0.8em;
+    margin: 0.1em 0 3em;
+    text-align: center;
+    color: #738493;
+}
+fieldset {
+    margin: 2em 0;
+    padding: 0.4em 0.5em 1em;
+    border-color: #777;
+    border-radius: 1em;
+    background-color: rgba(0,0,0,0.075);
+}
+legend {
+    color: aliceblue;
+    font-size: 1.4em;
+    text-align: center;
+    font-weight: 100;
+}
+label {
+    display: block;
+    margin-top: 0.6em;
+    font-size: 0.9em;
+}
