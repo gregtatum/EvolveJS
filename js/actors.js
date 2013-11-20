@@ -133,8 +133,8 @@ Evo.CellFactory = (function() {
             
             
 			//Mutate the cells
-            //cell.mutate();
-            //daughterCell.mutate();
+            cell.mutate();
+            daughterCell.mutate();
 			
 			//Revert to children
             cell.revert();
@@ -250,43 +250,26 @@ Evo.Cell = (function() {
 		},
 		
 		mutate : function() {
-			if(Math.random() < this.mutationRate) {
-				this.phenotype.fleeSpeed *= this.getMutation();
-				Math.max(0, this.phenotype.fleeSpeed);
-				Math.min(3000, this.phenotype.fleeSpeed);
-				
-			}
-			if(Math.random() < this.mutationRate) {
-				this.phenotype.color_r *= this.getMutation();
-				this.phenotype.color_g *= this.getMutation();
-				this.phenotype.color_b *= this.getMutation();
-				
-				this.phenotype.color_r = Math.max(this.phenotype.color_r, 0);
-				this.phenotype.color_g = Math.max(this.phenotype.color_g, 0);
-				this.phenotype.color_b = Math.max(this.phenotype.color_b, 0);
-				
-				this.phenotype.color_r = Math.min(this.phenotype.color_r, 200);
-				this.phenotype.color_g = Math.min(this.phenotype.color_g, 200);
-				this.phenotype.color_b = Math.min(this.phenotype.color_b, 200);
-				
-				this.fillStyle = Evo.Utilities.rgbToFillstyle(this.phenotype.color_r, this.phenotype.color_g, this.phenotype.color_b);
-			}
-			if(Math.random() < this.mutationRate) {
-				this.phenotype.fleeDistance *= this.getMutation();
-				Math.max(this.phenotype.fleeDistance, 1);
-			}
-			if(Math.random() < this.mutationRate) {
-				this.phenotype.birthSize *= this.getMutation();
-				Math.max(this.phenotype.birthSize, 1);
-			}
-			if(Math.random() < this.mutationRate) {
-				this.phenotype.growthRate *= this.getMutation();
-				Math.max(this.phenotype.growthRate, 0.0001);
-			}
+			
+			this.mutateSinglePhenotype('fleeSpeed', 0, 3000);
+			this.mutateSinglePhenotype('fleeDistance', 1);
+			this.mutateSinglePhenotype('birthSize', 1);
+			this.mutateSinglePhenotype('growthRate', .0001);
+			this.mutateSinglePhenotype('color_r', 0, 200, true);
+			this.mutateSinglePhenotype('color_g', 0, 200, true);
+			this.mutateSinglePhenotype('color_b', 0, 200, true);
+			this.phenotype.fillStyle = Evo.Utilities.rgbToFillstyle(this.phenotype.color_r, this.phenotype.color_g, this.phenotype.color_b);
 		},
 				
-		getMutation : function() {
-			return (0.5 - Math.random() + this.mutationFactor) / this.mutationFactor;
+		mutateSinglePhenotype : function(name, min, max, isInt) {
+			
+			if(Math.random() < this.mutationRate) {
+				this.phenotype[name] *= (0.5 - Math.random() + this.mutationFactor) / this.mutationFactor;
+				
+				if(min !== undefined) this.phenotype[name] = Math.max(this.phenotype[name], min);
+				if(max !== undefined) this.phenotype[name] = Math.min(this.phenotype[name], max);
+				if(isInt) this.phenotype[name] = parseInt(this.phenotype[name], 10);
+			}
 		},
 		
 		generatePhenotype : function() {

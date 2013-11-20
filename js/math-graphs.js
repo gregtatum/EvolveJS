@@ -295,6 +295,7 @@ Evo.Grid = (function() {
 		},
 		
 		draw : function(dt) {
+	
 			var i=this.gridWidth,
 				j=this.gridHeight,
 				startX, startY,
@@ -306,7 +307,7 @@ Evo.Grid = (function() {
 			while(i--) {
 				j = this.gridHeight;
 				while(j--) {
-					this.scene.canvas.context.fillStyle = "rgba(0,0,0,"+(0.05 * this.gridNodes[i][j].length())+")";
+					this.scene.canvas.context.fillStyle = "rgba(0,0,0,"+Math.min(0.2, (0.5 * this.gridNodes[i][j].length() / (this.nodeLength + 1)))+")";
 					
 					startX = (i / this.gridWidth) * this.pixelWidth;
 					startY = (j / this.gridHeight) * this.pixelHeight;
