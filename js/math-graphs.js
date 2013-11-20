@@ -2,16 +2,16 @@ Evo.Vector = (function() {
 	var self = function(x,y) {
 		this.x = x;
 		this.y = y;
-	}
+	};
 	
 	self.prototype.clone = function() {
 		return new Evo.Vector(this.x, this.y);
-	}
+	};
 	
 	self.prototype.copy = function(vector) {
 		this.x = vector.x;
 		this.y = vector.y;
-	}
+	};
 
     self.prototype.multiply = function(value) {
 		if(typeof(value) === "number") {
@@ -22,7 +22,7 @@ Evo.Vector = (function() {
 			this.y *= value.y;
 		}
 		return this;
-	}
+	};
     
 	self.prototype.divide = function(value) {
 		if(typeof(value) === "number") {
@@ -33,7 +33,7 @@ Evo.Vector = (function() {
 			this.y /= value.y;
 		}
 		return this;
-	}
+	};
 	
 	
 	self.prototype.add = function(value) {
@@ -46,7 +46,7 @@ Evo.Vector = (function() {
 			this.y += value.y;
 		}
 		return this;
-	}
+	};
 	
 	self.prototype.subtract = function(value) {
 		if(typeof(value) === "number") {
@@ -57,31 +57,31 @@ Evo.Vector = (function() {
 			this.y -= value.y;
 		}
 		return this;
-	}
+	};
     
     self.prototype.abs = function() {
 		Math.abs(this.x);
 		Math.abs(this.y);
 		return this;
-	}
+	};
     
     self.prototype.dot = function(vector) {
 		return (this.x * vector.x) + (this.y * vector.y);
-	}
+	};
     
     self.prototype.length = function() {
 		return Math.sqrt(this.dot(this));
-	}
+	};
     
     self.prototype.distance = function(vectorRef) {
 		var vector = vectorRef.clone();
 		vector.subtract(this);
 		return vector.length();
-	}
+	};
     
     self.prototype.lengthSqr = function() {
 		return this.dot(this);
-	}
+	};
 	
     /*  vector linear interpolation 
         interpolate between two vectors.
@@ -91,7 +91,7 @@ Evo.Vector = (function() {
 		this.x = this.x + (vector.x - this.x) * interpolation;
 		this.y = this.y + (vector.y - this.y) * interpolation;
 		return this;
-    }
+    };
 	
     /* normalize a vector */
     self.prototype.normalize  = function() {
@@ -101,7 +101,7 @@ Evo.Vector = (function() {
 			this.y = this.y / length;
 		}
 		return this;
-    }
+    };
 	
 	return self;
 })();
@@ -193,6 +193,8 @@ Evo.Grid = (function() {
 		this.pixelWidth = pixelWidth;
 		this.pixelHeight = pixelHeight;
 		
+		this.nodeLength = 0;
+		
 		this.scene.loop.registerDraw(this);
 		
 		this.create();
@@ -233,17 +235,44 @@ Evo.Grid = (function() {
 			this.gridNodes.length = 0;
 			this.gridNodes = null;
 		},
+				
+		emptyAllItems : function() {
+	
+			var i=this.gridWidth,
+				j=this.gridHeight;
+			
+			while(i--) {				
+				
+				j = this.gridHeight;
+				
+				while(j--) {
+					this.gridNodes[i][j].empty();
+				}
+			}
+			
+			this.nodeLength = 0;
+		},
 		
+		resize : function(pixelWidth, pixelHeight) {
+			this.pixelWidth = pixelWidth;
+			this.pixelHeight = pixelHeight;
+			
+			this.emptyAllItems();
+		},
+				
 		removeItems : function(items) {
 			var i=items.length;
 			
 			while(i--) {
 				this.removeItem(items[i]);
+				this.nodeLength--;
 			}
 		},
-		removeItem : function(item) {	
+		
+		removeItem : function(item) {
 			if(item.gridNode) {
 				item.gridNode.remove(item);
+				this.nodeLength--;
 			}
 		},
 		
@@ -254,8 +283,14 @@ Evo.Grid = (function() {
 				
 				if(item.gridNode) {
 					item.gridNode.remove(item);
+					
+					//TODO - After debug reduce to one call
+					this.nodeLength--;
 				}
 				gridNode.add(item);
+				
+				//TODO
+				this.nodeLength++;
 			}
 		},
 		
@@ -277,7 +312,7 @@ Evo.Grid = (function() {
 					startY = (j / this.gridHeight) * this.pixelHeight;
 					
 					this.scene.canvas.context.fillRect(startX, startY, tileWidth, tileHeight);
-					this.scene.canvas.context.strokeRect(startX, startY, tileWidth, tileHeight);
+					//this.scene.canvas.context.strokeRect(startX, startY, tileWidth, tileHeight);
 				}
 			}
 					
@@ -294,24 +329,33 @@ Evo.Grid = (function() {
 			vector.x = Math.floor((this.gridWidth) * (pixelX / this.pixelWidth));
 			vector.y = Math.floor((this.gridHeight) * (pixelY / this.pixelHeight));
 			
+			vector.x = Math.max(vector.x, 0);
+			vector.y = Math.max(vector.y, 0);
+			
+			vector.x = Math.min(vector.x, this.gridWidth - 1);
+			vector.y = Math.min(vector.y, this.gridWidth - 1);
 			
 			
 			return vector;
 		},
 			
 		pixelsToItems : function(pixelX, pixelY) {
-			var gridspace = self.pixelsToGridSpace(x, y);
-			return this.gridNodes[x][y].getAllItems();
+			var gridspace = self.pixelsToGridSpace(pixelX, pixelY);
+			return this.gridNodes[gridspace.x][gridspace.y].getAllItems();
 		},
 		
 		pixelsAndGridRadiusToItems : function(pixelX, pixelY, gridRadius) {
-			var gridspace = self.pixelsToGridSpace(x, y),
+			var gridspace = self.pixelsToGridSpace(pixelX, pixelY),
 				x = gridRadius * -1,
 				y = x,
 				i, j,
 				items = [];
 			
 			/*
+			
+			TODO - Move this to the GridNode?
+			GridNodes.neighbors = []
+			GridNodes.getSurroundingItems();
 			
 			Matches like this, where o is the node found at the pixel point.
 			This is a gridRadius 1
@@ -385,6 +429,10 @@ Evo.GridNode = (function() {
 		
 		destroy : function() {
 			this._nodeStack.length = 0;
+		},
+		
+		empty : function() {
+			this.destroy();
 		}
 	};
 	

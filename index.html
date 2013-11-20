@@ -4,22 +4,49 @@
 	<meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=0.5" />
 	<meta name="apple-mobile-web-app-capable" content="yes" />
-	<title>Dots</title>
-	<link type='text/css' rel='stylesheet' href='style.css' />
+	<title>Evo.js - An evolution simulation</title>
+	<link href='http://fonts.googleapis.com/css?family=Roboto:400,500,700,300,100' rel='stylesheet' type='text/css'>
+	<link href='style.css' type='text/css' rel='stylesheet' />
+	<link href='thirdparty/uniform/css/uniform.evo.css' type='text/css' rel='stylesheet' />
 	
 	<!-- Third party tools -->
 	<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
-	<script src="js/thirdparty/threejs/three.min.js"></script>
-	<script src="js/thirdparty/threejs/controls/TrackballControls.js"></script>	
+	<script src="thirdparty/threejs/three.min.js"></script>
+	<script src="thirdparty/uniform/jquery.uniform.min.js"></script>
+	<script src="thirdparty/threejs/controls/TrackballControls.js"></script>	
+	<script src="thirdparty/threejs/controls/TrackballControls.js"></script>	
 	
-	<!-- Dots -->
+	<!-- Evo -->
 	<script src="js/main.js"></script>
 	<script src="js/actors.js"></script>
 	<script src="js/states.js"></script>
+	<script src="js/binding.js"></script>
 	<script src="js/math-graphs.js"></script>
 </head>
 
 <body>
-<canvas width='550' height='400'></canvas>
+	<div class='menu clearfix'>
+		<h1 class='menu-title'>Evo<span>.js</span></h1>
+		<p class='menu-subtitle'>An evolution simulator</p>
+		<div>
+			<input type='button' id='Loop-Pause' value='Pause' />
+		</div>
+		<fieldset>
+			<legend>Cell Generator</legend>
+			<label for='CellFactory-cellStartCount'>Cell Start Count</label>
+			<input id='CellFactory-cellStartCount' type='number' min='1' step='1' />
+			
+			<label for='CellFactory-maxCells'>Max Cells</label>
+			<input id='CellFactory-maxCells' type='number' min='1' step='1' />
+			
+			<label for='CellFactory-killDistance'>Kill Distance</label>
+			<input id='CellFactory-killDistance' type='number' min='1' step='1' />
+			
+			<label for='CellFactory-Restart'>View Changes</label>
+			<input id='CellFactory-Restart' type='button' value='Regrow Cells' />
+			
+		</fieldset>
+	</div>
+	<canvas></canvas>
 </body>
 </html>

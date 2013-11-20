@@ -1,23 +1,43 @@
 var Evo = Evo || {};
 
+setTimeout(function() {
+	//evo.loop.stop();
+}, 2000);
+
 Evo.SceneGraph = (function() {
 	var self = function() {
 		$('document').ready(this.onReady.bind(this));
-	}
+	};
 	
 	self.prototype.onReady = function() {
+		this.page = new Evo.Page();
 		this.loop = new Evo.Loop(this);
 		this.canvas = new Evo.Canvas();
-		this.mouse = new Evo.Mouse();
+		this.mouse = new Evo.Mouse(this.canvas);
 		this.cellFactory = new Evo.CellFactory(this);
 		
 		this.loop.start();
-	}
+	};
 	
 	return self;
 })();
 
 var evo = new Evo.SceneGraph();
+
+Evo.Page = (function() {
+	var self = function() {
+		this.startUniform();
+	};
+	
+	self.prototype = {
+		startUniform : function() {
+			$('input, select, textarea').uniform();
+		}
+	};
+	
+	return self;
+})();
+
 
 Evo.Loop = (function() {
 	
@@ -50,6 +70,8 @@ Evo.Loop = (function() {
 		this._timePresent = 0;
 		this._timePast = 0;
 		this._dt = 0;
+		
+		$('#Loop-Pause').on('mouseup', this.pauseHandler.bind(this));
 	};
 	
 	//Public Methods
@@ -89,7 +111,7 @@ Evo.Loop = (function() {
 		
 		updateTime : function() {
 			this._timePresent = new Date().getTime();
-			this._dt = this._timePresent - this._timePast;
+			this._dt = Math.min(this._timePresent - this._timePast, 500);
 			this._timePast = this._timePresent;
 		},
 		
@@ -118,6 +140,19 @@ Evo.Loop = (function() {
 			this.scene.canvas.context.clearRect(0,0,this.scene.canvas.width, this.scene.canvas.height);
 			this.runDrawListeners(this._dt);
 		},
+				
+		pauseHandler : function(e) {
+			if(e) e.preventDefault();
+			
+			if(this._isPlaying) {
+				$('#Loop-Pause').val('Play');
+				this.stop();
+			} else {
+				$('#Loop-Pause').val('Pause');
+				this.start();
+			}
+			$.uniform.update("#Loop-Pause");
+		},
 		
 		start : function() {
 			this._isPlaying = true;
@@ -139,10 +174,12 @@ Evo.Canvas = (function() {
 		
 		this.ratio = window['devicePixelRatio'] >= 1 ? window.devicePixelRatio : 1;
 
-		this.el = $('canvas').get(0);
+		this.$el = $('canvas');
+		this.el = this.$el.get(0);
+		
 		this.resize();
 		this.context = this.el.getContext('2d');
-
+		
 		$(window).on('resize', this.resize.bind(this));
 	};
 	
@@ -150,10 +187,12 @@ Evo.Canvas = (function() {
 	self.prototype = {
 		
 		resize : function() {
-			this.el.width = $(window).width() * this.ratio;
+			this.el.width = ($(window).width() - $('.menu').outerWidth()) * this.ratio;
 			this.el.height = $(window).height() * this.ratio;
 			this.width = this.el.width;
 			this.height = this.el.height;
+			this.left = this.$el.offset().left;
+			this.top = this.$el.offset().top;
 			
 		}
 	};
@@ -163,9 +202,10 @@ Evo.Canvas = (function() {
 
 Evo.Mouse = (function() {
 	
-	var self = function() {
+	var self = function(canvas) {
 		this.position = new Evo.Vector(-10000, -10000);
-			 
+		this.canvas = canvas;
+		
 		document.addEventListener('mousemove', this.onMouseMove.bind(this));
 		document.addEventListener('touchmove', this.onTouchMove.bind(this));
 		document.addEventListener('touchend', this.onTouchEnd.bind(this));
@@ -179,9 +219,10 @@ Evo.Mouse = (function() {
 	self.prototype = {
 		
 		onMouseMove : function(e) {
+			
 			if(typeof(e.pageX) === "number") {
-				this.position.x = e.pageX;
-				this.position.y = e.pageY;
+				this.position.x = e.pageX - this.canvas.left;
+				this.position.y = e.pageY - this.canvas.top;
             } else {
 				this.position.x = -100000;
 				this.position.y = -100000;
@@ -190,8 +231,8 @@ Evo.Mouse = (function() {
         
         onTouchMove : function(e) {
             if(e.touches) {
-				this.position.x = e.touches[0].pageX;
-				this.position.y = e.touches[0].pageY;                
+				this.position.x = e.touches[0].pageX - this.canvas.left;
+				this.position.y = e.touches[0].pageY - this.canvas.top;
 			}
         },
         
@@ -238,7 +279,7 @@ Evo.Utilities.Examples = {};
 
 //Subclassing example
 Evo.Utilities.Examples.Parent = (function() {
-	console.log('defining parent');
+	
 	var self = function(name) {
 		this.name = name;
 		console.log(this.name + ' creating parent');
@@ -253,8 +294,6 @@ Evo.Utilities.Examples.Parent = (function() {
 	
 //Subclassing example	
 Evo.Utilities.Examples.Child = (function() { //Subclasses Evo.Example.Parent
-	
-	console.log('defining child');
 	
 	var self = function(name) {
 		this.parent.call(this, name);

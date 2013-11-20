@@ -296,19 +296,42 @@ Evo.States.DieRandomly = (function() {
 	
 	self.prototype.update = function(dt) {
 		
-		if(Math.random() < 0.0005) {
+		if(Math.random() < 0.001) {
 			this.cellFactory.cellIsDead(this.actor);
 			this.actor.kill();
 		}
 	};
 	
-	self.prototype.onAdd = function() {
-		
+	self.prototype.onAdd = function() {};
+	self.prototype.onRemove = function() {};
+	
+	return self;
+})();
+
+Evo.States.DieWhenCrowded = (function() {
+	
+	var self = function(actor, cellFactory) {
+		this.actor = actor;
+		this.cellFactory = cellFactory;
 	};
 	
-	self.prototype.onRemove = function() {
-		
+	self.prototype.update = function(dt) {
+		if(Math.random() < 0.1 * (this.cellFactory.cells.length / this.cellFactory.maxCells)) {
+			
+			if(Math.random() < 0.1 * (this.actor.age / 5000)) {
+				
+				console.log(evo.cellFactory.cells.length == evo.cellFactory.grid.nodeLength)
+				console.log('cell died');
+				this.cellFactory.cellIsDead(this.actor);
+				this.actor.kill();
+				console.log(evo.cellFactory.cells.length == evo.cellFactory.grid.nodeLength)
+				
+			}
+		}
 	};
+	
+	self.prototype.onAdd = function() {};
+	self.prototype.onRemove = function() {};
 	
 	return self;
 })();
