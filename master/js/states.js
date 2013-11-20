@@ -320,11 +320,8 @@ Evo.States.DieWhenCrowded = (function() {
 			
 			if(Math.random() < 0.1 * (this.actor.age / 5000)) {
 				
-				console.log(evo.cellFactory.cells.length == evo.cellFactory.grid.nodeLength)
-				console.log('cell died');
 				this.cellFactory.cellIsDead(this.actor);
 				this.actor.kill();
-				console.log(evo.cellFactory.cells.length == evo.cellFactory.grid.nodeLength)
 				
 			}
 		}
