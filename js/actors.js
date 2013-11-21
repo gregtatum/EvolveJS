@@ -149,6 +149,7 @@ Evo.CellFactory = (function() {
 		// Bindings
 				
 		setBindings : function() {
+			
 			new Evo.Binding(
 				$('#CellFactory-cellStartCount'),
 				this.getCellStartCount.bind(this),
@@ -166,9 +167,34 @@ Evo.CellFactory = (function() {
 				this.getKillDistance.bind(this),
 				this.setKillDistance.bind(this)
 			);
-				
-				
-				
+			
+			new Evo.Binding(
+				$('#CellFactory-mutationRate'),
+				function() { return Evo.Cell.prototype.mutationRate; },
+				function(value) {
+			
+					value = parseFloat(value);
+					value = Math.max(value, 0);
+					value = Math.min(value, 1);
+					
+					Evo.Cell.prototype.mutationRate = value;
+				}
+			);
+			
+			new Evo.Binding(
+				$('#CellFactory-mutationFactor'),
+				function() { return 1 / Evo.Cell.prototype.mutationFactor; },
+				function(value) {
+			
+					value = 1 / value;
+					value = parseFloat(value);
+					value = Math.max(value, 0.00001);
+					value = Math.min(value, 1000);
+					
+					Evo.Cell.prototype.mutationFactor = value;
+				}
+			);
+			
 		},
 		
 		setCellStartCount : function(value) {
@@ -185,7 +211,7 @@ Evo.CellFactory = (function() {
 		setMaxCells : function(value) {
 			value = parseInt(value);
 			value = value > 0 ? value : 1;
-
+			value = Math.min(value, 10000);
 			this.maxCells = value;
 		},
 		
@@ -254,7 +280,7 @@ Evo.Cell = (function() {
 			this.mutateSinglePhenotype('fleeSpeed', 0, 3000);
 			this.mutateSinglePhenotype('fleeDistance', 1);
 			this.mutateSinglePhenotype('birthSize', 1);
-			this.mutateSinglePhenotype('growthRate', .0001);
+			this.mutateSinglePhenotype('growthRate', .0001, 2);
 			this.mutateSinglePhenotype('color_r', 0, 200, true);
 			this.mutateSinglePhenotype('color_g', 0, 200, true);
 			this.mutateSinglePhenotype('color_b', 0, 200, true);

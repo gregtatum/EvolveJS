@@ -15,6 +15,7 @@ Evo.SceneGraph = (function() {
 		this.canvas = new Evo.Canvas();
 		this.mouse = new Evo.Mouse(this.canvas);
 		this.cellFactory = new Evo.CellFactory(this);
+		this.ui = new Evo.UI();
 		
 		this.loop.start();
 	};

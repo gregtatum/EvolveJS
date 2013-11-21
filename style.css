@@ -73,7 +73,7 @@ h1 > span {
 }
 fieldset {
     margin: 2em 0;
-    padding: 0.4em 0.5em 1em;
+    padding: 0.4em 1em 1em;
     border-color: #777;
     border-radius: 1em;
     background-color: rgba(0,0,0,0.075);
@@ -88,4 +88,51 @@ label {
     display: block;
     margin-top: 0.6em;
     font-size: 0.9em;
+}
+.section-navigator > .button {
+    display: block;
+    width: 85%;
+    margin: 0.6em auto 0.4em;
+    text-decoration: none;
+    font-size: 1em;
+    text-transform: none;
+}
+
+.section-wrapper {
+    position: relative;
+}
+.section-wrapper > * {
+    display: none;
+}
+.section-navigator {
+    position: absolute;
+    opacity: 1;
+    top: 0;
+    left: 0;
+	display:block;
+    -webkit-transform: scale(1); 
+    transition: -webkit-transform 500ms  ease-in-out, opacity 500ms ease-in-out;
+}
+.section-navigator.hide {
+    opacity: 0;
+    -webkit-transform: scale(2);
+    pointer-events: none;
+}
+.section-subsection {
+    -webkit-transform: scale(0.5); 
+    transition: -webkit-transform 500ms ease-in-out, opacity 500ms  ease-in-out;
+    opacity: 0;
+    display: block !important;
+    pointer-events: none;
+}
+.section-subsection.show {
+    -webkit-transform: scale(1); 
+    opacity: 1;
+    pointer-events: auto;
+}
+div.section-go-back-wrapper span {
+    background: #555;
+    border-color: #000;
+    color: #bbb;
+    padding-left: 0em;
 }
