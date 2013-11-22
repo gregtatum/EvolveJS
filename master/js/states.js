@@ -5,6 +5,7 @@ Evo.StateMachine = (function() {
 	};
 	
 	self.prototype = {
+		
 		update : function(dt) {
 			for(var i in this.currentStates) {
 				this.currentStates[i].update(dt);
@@ -13,14 +14,14 @@ Evo.StateMachine = (function() {
 
 		add : function(state) {
 			if(this.currentStates.indexOf(state) >= 0) return; //Do not add twice
-			state.onAdd();
+			if(typeof state.onAdd === "function") state.onAdd();
 			this.currentStates.push(state);
 		},
 
 		remove : function(state) {
 			var index = this.currentStates.indexOf(state);
 			if(index >= 0) {
-				this.currentStates[index].onRemove();
+				if(typeof this.currentStates[index] === "function") this.currentStates[index].onRemove();
 				this.currentStates.splice(index,1);
 			}
 		},
@@ -53,48 +54,41 @@ Evo.States.Roam = (function() {
 		this.actor = actor;
 		
 		this.speed = 0.05;
-		this.direction = new Evo.Vector(
-			(Math.random() * 2) - 1,
-			(Math.random() * 2) - 1
-		);
+		this.direction = new Evo.Vector();
 		
+		this.direction.x = (Math.random() * 2) - 1;
+		this.direction.y = (Math.random() * 2) - 1;
+		if(Evo.Vector.is3d) this.direction.z = (Math.random() * 2) - 1;
 	};
 	
 	self.prototype.update = function() {
 		
 		this.direction.x = Math.min((Math.random() - 0.5) / 10 + this.direction.x, 1);
 		this.direction.y = Math.min((Math.random() - 0.5) / 10 + this.direction.y, 1);
-		
+		if(Evo.Vector.is3d) this.direction.z = Math.min((Math.random() - 0.5) / 10 + this.direction.z, 1);
 		
 		this.actor.addWeightedDirection(this.direction, 1);
 		this.actor.addWeightedSpeed(this.speed, 1);
-	};
-	self.prototype.onAdd = function() {
-		
-	};
-	self.prototype.onRemove = function() {
-		
 	};
 	
 	return self;
 })();
 
-Evo.States.FleeWalls = (function() {
+Evo.States.FleeWalls2d = (function() {
 	
 	var self = function(actor, canvas) {
 		this.actor = actor;
 		this.canvas = canvas;
 		
 		//The margin is a quarter of the document
-		this.MARGIN = (this.canvas.width + this.canvas.height) / 8;
-		this.direction = new Evo.Vector(0,0);
+		this.MARGIN = (this.canvas.width + this.canvas.height) / 4;
+		this.direction = new Evo.Vector();
 		this.weight = 0;
 	};
 	
 	self.prototype.update = function() {
 		
-		this.direction.x = 0;
-		this.direction.y = 0;
+		this.direction.multiplyScalar(0);
 		
 		if(this.actor.position.x < this.MARGIN) {
 			this.direction.x = ((this.MARGIN - this.actor.position.x) / this.MARGIN);
@@ -113,17 +107,11 @@ Evo.States.FleeWalls = (function() {
 		if(this.direction.x !== 0 || this.direction.y !== 0) {
 			
 			//Crude/cheap weight calculator
-			this.weight = Math.pow((this.direction.x + this.direction.y), 2);
+			this.weight = this.direction.x * this.direction.x + this.direction.y * this.direction.y;
 			this.direction.normalize();
 
-			this.actor.addWeightedDirection(this.direction, this.weight * 4);
+			this.actor.addWeightedDirection(this.direction, this.weight * 2);
 		}
-	};
-	self.prototype.onAdd = function() {
-		
-	};
-	self.prototype.onRemove = function() {
-		
 	};
 	
 	return self;
@@ -263,9 +251,16 @@ Evo.States.GrowAndDivide = (function() {
 		this.divideSize = divideSize;
 	};
 	
+	self.prototype.GROWTHFACTOR = 0.05;
+	
 	self.prototype.update = function(dt) {
 		
-		this.actor.size = this.actor.size + (this.growthSpeed * dt);
+		this.actor.size = this.actor.size + this.actor.energy * this.GROWTHFACTOR;
+		this.actor.energy = 0;
+		
+		if(this.actor.i == 0) {
+			//console.log(this.actor.energy, this.actor.size, growth * this.actor.size);
+		}
 		
 		if(this.actor.size > this.divideSize) {
 			//Make sure we don't get too big
@@ -283,9 +278,23 @@ Evo.States.GrowAndDivide = (function() {
 		
 	};
 	
+	self.prototype.setBindings = function() {
+
+		//Energy per second
+		new Evo.Binding(
+			$('#States-GrowAndDivide-GROWTHFACTOR'),
+			function() { return self.prototype.GROWTHFACTOR },
+			function(value) {
+
+				value = parseFloat(value, 10);
+				self.prototype.GROWTHFACTOR = value;
+			}.bind(this)
+		);
+	};
+	$(document).ready(self.prototype.setBindings);
+	
 	return self;
 })();
-
 
 Evo.States.DieRandomly = (function() {
 	
@@ -316,9 +325,9 @@ Evo.States.DieWhenCrowded = (function() {
 	};
 	
 	self.prototype.update = function(dt) {
-		if(Math.random() < 0.1 * (this.cellFactory.cells.length / this.cellFactory.maxCells)) {
+		if(Math.random() < 0.3 * (this.cellFactory.cells.length / this.cellFactory.maxCells)) {
 			
-			if(Math.random() < 0.1 * (this.actor.age / 5000)) {
+			if(Math.random() < 0.5 * (this.actor.age / 5000)) {
 				
 				this.cellFactory.cellIsDead(this.actor);
 				this.actor.kill();

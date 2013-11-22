@@ -12,9 +12,10 @@ Evo.SceneGraph = (function() {
 	self.prototype.onReady = function() {
 		this.page = new Evo.Page();
 		this.loop = new Evo.Loop(this);
-		this.canvas = new Evo.Canvas();
+		this.canvas = new Evo.Canvas(this.loop);
 		this.mouse = new Evo.Mouse(this.canvas);
 		this.cellFactory = new Evo.CellFactory(this);
+		this.ui = new Evo.UI();
 		
 		this.loop.start();
 	};
@@ -115,15 +116,17 @@ Evo.Loop = (function() {
 			this._timePast = this._timePresent;
 		},
 		
-		runUpdateListeners : function() {
+		runUpdateListeners : function(dt) {
 			for(this._uI = 0; this._uI < this._updateLength; ++this._uI) {
-				this._updateListeners[this._uI].update(this._dt);
+				this._updateListeners[this._uI].update(dt);
 			}
 		},
 		
-		runDrawListeners : function() {
+		runDrawListeners : function(dt) {
+			this.scene.canvas.context.clearRect(0,0,this.scene.canvas.width, this.scene.canvas.height);
+			
 			for(this._dI = 0; this._dI < this._drawLength; ++this._dI) {
-				this._drawListeners[this._dI].draw(this._dt);
+				this._drawListeners[this._dI].draw(dt);
 			}
 		},
 		
@@ -137,7 +140,6 @@ Evo.Loop = (function() {
 			
 			this.updateTime();
 			this.runUpdateListeners(this._dt);
-			this.scene.canvas.context.clearRect(0,0,this.scene.canvas.width, this.scene.canvas.height);
 			this.runDrawListeners(this._dt);
 		},
 				
@@ -170,8 +172,9 @@ Evo.Loop = (function() {
 
 Evo.Canvas = (function() {
 	
-	var self = function() {
+	var self = function(loop) {
 		
+		this.loop = loop;
 		this.ratio = window['devicePixelRatio'] >= 1 ? window.devicePixelRatio : 1;
 
 		this.$el = $('canvas');
@@ -186,7 +189,7 @@ Evo.Canvas = (function() {
 	//Public Methods
 	self.prototype = {
 		
-		resize : function() {
+		resize : function(e) {
 			this.el.width = ($(window).width() - $('.menu').outerWidth()) * this.ratio;
 			this.el.height = $(window).height() * this.ratio;
 			this.width = this.el.width;
@@ -194,6 +197,10 @@ Evo.Canvas = (function() {
 			this.left = this.$el.offset().left;
 			this.top = this.$el.offset().top;
 			
+			if(e) {
+				this.loop.runUpdateListeners(0);
+				this.loop.runDrawListeners(0);
+			}
 		}
 	};
 	

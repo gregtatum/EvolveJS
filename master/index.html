@@ -6,8 +6,8 @@
 	<meta name="apple-mobile-web-app-capable" content="yes" />
 	<title>Evo.js - An evolution simulation</title>
 	<link href='http://fonts.googleapis.com/css?family=Roboto:400,500,700,300,100' rel='stylesheet' type='text/css'>
-	<link href='style.css' type='text/css' rel='stylesheet' />
 	<link href='thirdparty/uniform/css/uniform.evo.css' type='text/css' rel='stylesheet' />
+	<link href='style.css' type='text/css' rel='stylesheet' />
 	
 	<!-- Third party tools -->
 	<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
@@ -15,10 +15,11 @@
 	
 	<!-- Evo -->
 	<script src="js/main.js"></script>
-	<script src="js/actors.js"></script>
+	<script src="js/cells.js"></script>
+	<script src="js/graphs.js"></script>
+	<script src="js/math.js"></script>
 	<script src="js/states.js"></script>
-	<script src="js/binding.js"></script>
-	<script src="js/math-graphs.js"></script>
+	<script src="js/ui.js"></script>
 </head>
 
 <body>
@@ -28,21 +29,65 @@
 		<div>
 			<input type='button' id='Loop-Pause' value='Pause' />
 		</div>
-		<fieldset>
-			<legend>Cell Generator</legend>
-			<label for='CellFactory-cellStartCount'>Cell Start Count</label>
-			<input id='CellFactory-cellStartCount' type='number' min='1' step='1' />
+		
+		<div class='section-wrapper clearfix'>
+
+			<fieldset class='section-navigator clearfix'>
+				<legend>Evo Conditions</legend>
+				<input type='button' value='Cells' data-id-show='section-cells' />
+				<input type='button' value='Behaviors' data-id-show='section-behaviors' />
+				<input type='button' value='Environment' data-id-show='section-environment' />
+				<input type='button' value='Energy Cost' data-id-show='section-energy' />
+			</fieldset>
+
+			<div class='back-button'>
+				<input class='back-button-input' type='button' value='X' />
+			</div>
 			
-			<label for='CellFactory-maxCells'>Max Cells</label>
-			<input id='CellFactory-maxCells' type='number' min='1' step='1' />
+			<fieldset class='section-subsection' id='section-cells'>
+				<legend>Cells</legend>
+				
+				<label for='CellFactory-mutationRate'>Mutation Rate</label>
+				<input id='CellFactory-mutationRate' type='number' min='0' max='1' step='0.1' />
+				
+				<label for='CellFactory-mutationFactor'>Mutation Magnitude</label>
+				<input id='CellFactory-mutationFactor' type='number' min='.01' max='1000' step='0.01' />
+				
+				<label for='CellFactory-killDistance'>Kill Distance</label>
+				<input id='CellFactory-killDistance' type='number' min='1' step='1' />
+				
+				<label for='CellFactory-maxCells'>Max Cells</label>
+				<input id='CellFactory-maxCells' type='number' min='1' step='1' />
+
+			</fieldset>
 			
-			<label for='CellFactory-killDistance'>Kill Distance</label>
-			<input id='CellFactory-killDistance' type='number' min='1' step='1' />
+			<fieldset class='section-subsection' id='section-behaviors'>
+				<legend>Behaviors</legend>
+			</fieldset>
 			
-			<label for='CellFactory-Restart'>View Changes</label>
-			<input id='CellFactory-Restart' type='button' value='Regrow Cells' />
+			<fieldset class='section-subsection' id='section-environment'>
+				<legend>Environment</legend>
+				
+				<label for='CellFactory-cellStartCount'>Cell Start Count</label>
+				<input id='CellFactory-cellStartCount' type='number' min='1' step='1' />
+				
+				<label for='CellFactory-Restart'>View Changes</label>
+				<input id='CellFactory-Restart' type='button' value='Regrow Cells' />				
+			</fieldset>
 			
-		</fieldset>
+			<fieldset class='section-subsection' id='section-energy'>
+				<legend>Energy Cost</legend>
+				
+				<label for='EnergyGenerator-energyPerSecond'>Energy Per Second</label>
+				<input id='EnergyGenerator-energyPerSecond' type='number' min='0' step='1000' />
+				
+				<label for='States-GrowAndDivide-GROWTHFACTOR'>Growth Efficiency</label>
+				<input id='States-GrowAndDivide-GROWTHFACTOR' type='number' min='.01' max='1000' step='0.01' />
+				
+				<label for='Cell-SpeedCost'>Cost to Move</label>
+				<input id='Cell-SpeedCost' type='number' min='0' step='0.01' />
+			</fieldset>
+		</div>
 	</div>
 	<canvas></canvas>
 </body>
