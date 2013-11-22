@@ -19,6 +19,7 @@ Evo.CellFactory = (function() {
 		this.cellStartCount = 10;
 		this.maxCells = 1500;
 		this.killDistance = 100;
+		this.scene.mouse.setDrawRadius(this.killDistance);
 
 		this.setBindings();
 		this.generateCells();
@@ -191,7 +192,7 @@ Evo.CellFactory = (function() {
 				function(value) {
 					value = parseInt(value);
 					value = value > 0 ? value : 1;
-
+					this.scene.mouse.setDrawRadius(value);
 					this.killDistance = value;
 				}.bind(this)
 			);
