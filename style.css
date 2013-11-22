@@ -40,6 +40,17 @@ canvas {
 	position: absolute;
 	top: 0;
 	left: 200px;
+	
+	box-shadow: 0 0 100px rgba(0,150,257,0.5) inset;
+	
+	background: #ffffff;
+	background: -moz-radial-gradient(center, ellipse cover,  #ffffff 0%, #f9fbff 51%, #e5f0ff 88%, #e5f3ff 100%);
+	background: -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,#ffffff), color-stop(51%,#f9fbff), color-stop(88%,#e5f0ff), color-stop(100%,#e5f3ff));
+	background: -webkit-radial-gradient(center, ellipse cover,  #ffffff 0%,#f9fbff 51%,#e5f0ff 88%,#e5f3ff 100%);
+	background: -o-radial-gradient(center, ellipse cover,  #ffffff 0%,#f9fbff 51%,#e5f0ff 88%,#e5f3ff 100%);
+	background: -ms-radial-gradient(center, ellipse cover,  #ffffff 0%,#f9fbff 51%,#e5f0ff 88%,#e5f3ff 100%);
+	background: radial-gradient(ellipse at center,  #ffffff 0%,#f9fbff 51%,#e5f0ff 88%,#e5f3ff 100%);
+
 }
 .clearfix:before,
 .clearfix:after {
@@ -69,7 +80,7 @@ h1 > span {
     font-size: 0.8em;
     margin: 0.1em 0 3em;
     text-align: center;
-    color: #738493;
+    color: #73848A;
 }
 fieldset {
     margin: 2em 0;
@@ -80,7 +91,7 @@ fieldset {
 }
 legend {
     color: aliceblue;
-    font-size: 1.4em;
+    font-size: 1.35em;
     text-align: center;
     font-weight: 100;
 }
@@ -89,15 +100,22 @@ label {
     margin-top: 0.6em;
     font-size: 0.9em;
 }
+div.back-button span {
+    background: #fff;
+    padding-left: 0em;
+    display: inline-block; border-radius: 5em; padding: 0 0.6em; box-shadow: -0.2em 0.2em 0.6em #000;
+}
+.back-button.show {
+	display:block;
+}
 .section-navigator > .button {
     display: block;
-    width: 85%;
+    width: 95%;
     margin: 0.6em auto 0.4em;
     text-decoration: none;
     font-size: 1em;
     text-transform: none;
 }
-
 .section-wrapper {
     position: relative;
 }
@@ -106,6 +124,7 @@ label {
 }
 .section-navigator {
     position: absolute;
+    width: 100%;
     opacity: 1;
     top: 0;
     left: 0;
@@ -124,15 +143,16 @@ label {
     opacity: 0;
     display: block !important;
     pointer-events: none;
+    position: absolute;
+    width: 100%;
+    top: 0;
+    left: 0;
 }
 .section-subsection.show {
     -webkit-transform: scale(1); 
     opacity: 1;
     pointer-events: auto;
 }
-div.section-go-back-wrapper span {
-    background: #555;
-    border-color: #000;
-    color: #bbb;
-    padding-left: 0em;
+.back-button {
+    position: absolute; top: 1.9em; right: -0.6em; z-index: 2;
 }

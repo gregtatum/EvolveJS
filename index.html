@@ -15,10 +15,10 @@
 	
 	<!-- Evo -->
 	<script src="js/main.js"></script>
-	<script src="js/actors.js"></script>
+	<script src="js/cells.js"></script>
+	<script src="js/graphs.js"></script>
+	<script src="js/math.js"></script>
 	<script src="js/states.js"></script>
-	<script src="js/binding.js"></script>
-	<script src="js/math-graphs.js"></script>
 	<script src="js/ui.js"></script>
 </head>
 
@@ -30,26 +30,22 @@
 			<input type='button' id='Loop-Pause' value='Pause' />
 		</div>
 		
-		<div class='section-wrapper'>
+		<div class='section-wrapper clearfix'>
 
 			<fieldset class='section-navigator clearfix'>
 				<legend>Evo Conditions</legend>
-				<input type='button' value='Cell Generator' data-id-show='section-cellGenerator' />
-				<input type='button' value='Behaviors' />
-				<input type='button' value='Environment' />
-				<input type='button' value='Energy Cost' />
+				<input type='button' value='Cells' data-id-show='section-cells' />
+				<input type='button' value='Behaviors' data-id-show='section-behaviors' />
+				<input type='button' value='Environment' data-id-show='section-environment' />
+				<input type='button' value='Energy Cost' data-id-show='section-energy' />
 			</fieldset>
 
-			<fieldset class='section-subsection' id='section-cellGenerator'>
-				<legend>Cell Generator</legend>
-				
-				<div class='section-go-back-wrapper'><input class='section-go-back' type='button' value='&larr; Back' /></div>
-				
-				<label for='CellFactory-cellStartCount'>Cell Start Count</label>
-				<input id='CellFactory-cellStartCount' type='number' min='1' step='1' />
-
-				<label for='CellFactory-maxCells'>Max Cells</label>
-				<input id='CellFactory-maxCells' type='number' min='1' step='1' />
+			<div class='back-button'>
+				<input class='back-button-input' type='button' value='X' />
+			</div>
+			
+			<fieldset class='section-subsection' id='section-cells'>
+				<legend>Cells</legend>
 				
 				<label for='CellFactory-mutationRate'>Mutation Rate</label>
 				<input id='CellFactory-mutationRate' type='number' min='0' max='1' step='0.1' />
@@ -59,10 +55,37 @@
 				
 				<label for='CellFactory-killDistance'>Kill Distance</label>
 				<input id='CellFactory-killDistance' type='number' min='1' step='1' />
+				
+				<label for='CellFactory-maxCells'>Max Cells</label>
+				<input id='CellFactory-maxCells' type='number' min='1' step='1' />
 
+			</fieldset>
+			
+			<fieldset class='section-subsection' id='section-behaviors'>
+				<legend>Behaviors</legend>
+			</fieldset>
+			
+			<fieldset class='section-subsection' id='section-environment'>
+				<legend>Environment</legend>
+				
+				<label for='CellFactory-cellStartCount'>Cell Start Count</label>
+				<input id='CellFactory-cellStartCount' type='number' min='1' step='1' />
+				
 				<label for='CellFactory-Restart'>View Changes</label>
-				<input id='CellFactory-Restart' type='button' value='Regrow Cells' />
-
+				<input id='CellFactory-Restart' type='button' value='Regrow Cells' />				
+			</fieldset>
+			
+			<fieldset class='section-subsection' id='section-energy'>
+				<legend>Energy Cost</legend>
+				
+				<label for='EnergyGenerator-energyPerSecond'>Energy Per Second</label>
+				<input id='EnergyGenerator-energyPerSecond' type='number' min='0' step='1000' />
+				
+				<label for='States-GrowAndDivide-GROWTHFACTOR'>Growth Efficiency</label>
+				<input id='States-GrowAndDivide-GROWTHFACTOR' type='number' min='.01' max='1000' step='0.01' />
+				
+				<label for='Cell-SpeedCost'>Cost to Move</label>
+				<input id='Cell-SpeedCost' type='number' min='0' step='0.01' />
 			</fieldset>
 		</div>
 	</div>
