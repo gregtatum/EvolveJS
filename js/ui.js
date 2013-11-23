@@ -2,32 +2,41 @@ Evo.UI = (function() {
 
 	var self = function() {
 		
-		this.$sectionNavigator = $('.section-navigator');
-		this.$backButton = $('.back-button');
-		this.$sectionNavigator.find('input[type=button]').on('mouseup', this.sectionNavigatorHandler.bind(this));
-		$('.back-button-input').on('mouseup', this.exitSectionHandler.bind(this));
+		this.transitionSpeed = 500;
+		
+		this.$level1 = $("#level1");
+		this.$level2 = $("#level2");
+		this.$wrapper = $(".section-wrapper");
+		
+		this.$wrapper.addClass('level1-showing');
+		
+		//Set handlers
+		$('.section-navigator input[type=button]')	.on('mouseup', this.showLevel1.bind(this));
+		$('.back-button-input')						.on('mouseup', this.showLevel2.bind(this));
+		$('#Binding-toHash')						.on('mouseup', Evo.Binding.prototype.modelToHash);
 	};
 	
 	self.prototype = {
-		sectionNavigatorHandler : function(e) {
-			
-			
+		
+		showLevel1 : function(e) {
 			if(e) e.preventDefault();
 			
 			var id = $(e.target).attr('data-id-show');
 			if(id) {
+				
 				$("#"+id).addClass('show');
-				this.$backButton.addClass('show');
-				this.$sectionNavigator.addClass('hide');
+				this.$wrapper.removeClass('level1-showing');
+				this.$wrapper.addClass('level2-showing');
 			}
 		},
 				
-		exitSectionHandler : function(e) {
-			console.log('hiding section');
+		showLevel2 : function(e) {
 			if(e) e.preventDefault();
-			$('fieldset').removeClass('show');
-			this.$backButton.removeClass('show');
-			this.$sectionNavigator.removeClass('hide');
+			
+			this.$level2.find('fieldset').removeClass('show');
+			this.$wrapper.addClass('level1-showing');
+			this.$wrapper.removeClass('level2-showing');
+			
 		}
 	};
 	
@@ -41,17 +50,72 @@ Evo.Binding = (function() {
 	 * JS Object / DOM Element binding
 	 */
 	
-	var self = function($view, getter, setter) {
-		this.$view = $view;
+	var self = function(domId, getter, setter) {
+		this.domId = domId;
+		this.$view = $('#'+domId);
 		this.getter = getter;
 		this.setter = setter;
 		
-		this.$view.on('change.Evo-Inputs', this.updateModel.bind(this));
+		this.$view.on('change.Evo-Binding', this.updateModel.bind(this));
 		this.updateView();
+		
+		self.prototype._allBindings.push(this);
 	};
 	
 	//Public Methods
 	self.prototype = {
+		
+		_allBindings : [],
+		
+		modelToHash : function() {
+			
+			var bindings = self.prototype._allBindings,
+				params = [];
+				
+			for(var i = 0, il = bindings.length; i < il; i++) {
+				params.push({
+					name  : bindings[i].domId,
+					value : bindings[i].getViewValue()
+				});
+			}
+			window.location.hash = "/?" + $.param(params);
+		},
+				
+		hashToModel : function() {
+	
+			//Hash to object
+			var getVars = (function(a) {
+				//http://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
+				if (a === "") return {};
+				var b = [];
+				for (var i = 0; i < a.length; ++i) {
+					var p=a[i].split('=');
+					if (p.length !== 2) continue;
+					b.push({
+						name : p[0],
+						value : decodeURIComponent(p[1].replace(/\+/g, " "))
+					});
+				}
+				return b;
+			})(window.location.hash.substr(3).split('&'));
+			
+			
+			var bindings = self.prototype._allBindings,
+				g = 0, gl = getVars.length,
+				b = 0, bl = bindings.length;
+					
+			
+			for(; g < gl; g++) {
+				for(b=0; b < bl; b++) {
+					console.log(bindings[b].domId, getVars[g].name);
+					if(bindings[b].domId === getVars[g].name && getVars[g].name !== undefined) {
+						//console.log(bindings[b].domId, getVars[g].value);
+						bindings[b].updateView(getVars[g].value);
+						bindings[b].updateModel();
+					}
+				}
+			}
+		},
 		
 		getViewValue : function() {
 			
@@ -74,11 +138,7 @@ Evo.Binding = (function() {
 		
 		updateModel : function() {
 			
-			var requestedValue, setValue;
-			
-			
-			//Get the requested value change
-			requestedValue = this.getViewValue();
+			var requestedValue = this.getViewValue();
 			
 			//Send it to the setter, which should return the value actually set
 			this.setter(requestedValue);
@@ -87,9 +147,11 @@ Evo.Binding = (function() {
 			this.updateView();
 		},
 				
-		updateView : function() {
+		updateView : function(value) {
 			
-			var value = this.getter();
+			if(value === undefined) {
+				value = this.getter();
+			}
 			
 			if(this.$view[0] === undefined) return;
 
@@ -109,10 +171,17 @@ Evo.Binding = (function() {
 		},
 				
 		remove : function() {
+	
+			//Remove prototype reference
+			self.prototype._allBindings.splice(
+				self.prototype._allBindings.indexOf(this),
+				1
+			);
+			
 			this.$view = null;
 			this.getter = null;
 			this.setter = null;
-			this.$view.off('change.Evo-Inputs', this.updateModel);
+			this.$view.off('change.Evo-Binding', this.updateModel);
 		}
 	};
 	

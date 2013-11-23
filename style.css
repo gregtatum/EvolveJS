@@ -122,7 +122,7 @@ div.back-button span {
 .section-wrapper > * {
     display: none;
 }
-.section-navigator {
+.section-level1 {
     position: absolute;
     width: 100%;
     opacity: 1;
@@ -132,12 +132,12 @@ div.back-button span {
     -webkit-transform: scale(1); 
     transition: -webkit-transform 500ms  ease-in-out, opacity 500ms ease-in-out;
 }
-.section-navigator.hide {
+.level2-showing .section-level1 {
     opacity: 0;
     -webkit-transform: scale(2);
     pointer-events: none;
 }
-.section-subsection {
+.section-level2 {
     -webkit-transform: scale(0.5); 
     transition: -webkit-transform 500ms ease-in-out, opacity 500ms  ease-in-out;
     opacity: 0;
@@ -147,11 +147,25 @@ div.back-button span {
     width: 100%;
     top: 0;
     left: 0;
+	-webkit-transform-origin:50% 120px;
 }
-.section-subsection.show {
+.level2-showing .section-level2 {
     -webkit-transform: scale(1); 
     opacity: 1;
     pointer-events: auto;
+}
+.section-subsection {
+	position:absolute;
+	top:0;
+	opacity:0;
+	pointer-events: none;
+	
+    transition: opacity 500ms  ease-in-out;
+}
+.section-subsection.show {
+	top:0;
+	opacity:1;
+	pointer-events: auto;
 }
 .back-button {
     position: absolute; top: 1.9em; right: -0.6em; z-index: 2;

@@ -22,7 +22,8 @@ Evo.CellFactory = (function() {
 		this.scene.mouse.setDrawRadius(this.killDistance);
 
 		this.setBindings();
-		this.generateCells();
+		Evo.Cell.prototype.setBindings();
+		Evo.Phenotype.prototype.setBindings();
 		
 		//$(this.scene.canvas.el).click(this.restart.bind(this));
 		$(this.scene.canvas.el).on('mousedown', this.mouseKillCells.bind(this));
@@ -110,8 +111,6 @@ Evo.CellFactory = (function() {
 				
             }
 		},
-				
-		
 		
 		animateCell : function(cell) {
 			
@@ -158,14 +157,11 @@ Evo.CellFactory = (function() {
 		getCellCount : function() {
 			return this.cells.length;
 		},
-				
-		//----------------------------------------------------
-		// Bindings
-				
+		
 		setBindings : function() {
 			
 			new Evo.Binding(
-				$('#CellFactory-cellStartCount'),
+				'startcount',
 				function() { return this.cellStartCount; }.bind(this),
 				function(value) {
 					value = parseInt(value);
@@ -176,7 +172,7 @@ Evo.CellFactory = (function() {
 			);
 				
 			new Evo.Binding(
-				$('#CellFactory-maxCells'),
+				'maxcells',
 				function() { return this.maxCells; }.bind(this),
 				function(value) {
 					value = parseInt(value);
@@ -187,8 +183,8 @@ Evo.CellFactory = (function() {
 			);
 				
 			new Evo.Binding(
-				$('#CellFactory-killDistance'),
-				function() { return this.killDistance }.bind(this),
+				'killdistance',
+				function() { return this.killDistance; }.bind(this),
 				function(value) {
 					value = parseInt(value);
 					value = value > 0 ? value : 1;
@@ -196,9 +192,10 @@ Evo.CellFactory = (function() {
 					this.killDistance = value;
 				}.bind(this)
 			);
-				
+			
+			/*	
 			new Evo.Binding(
-				$('#CellFactory-behaviors'),
+				'CellFactory-behaviors',
 				function() {
 					var behaviors = [];
 					
@@ -210,12 +207,9 @@ Evo.CellFactory = (function() {
 				
 				}.bind(this),
 				function(value) {
-					value = parseInt(value);
-					value = value > 0 ? value : 1;
-
-					this.killDistance = value;
+			
 				}.bind(this)
-			);
+			);*/
 			
 		}		
 	};
@@ -361,8 +355,8 @@ Evo.Cell = (function() {
 			
 			//Energy per second
 			new Evo.Binding(
-				$('#Cell-SpeedCost'),
-				function() { return self.prototype.SPEEDCOST },
+				'speedcost',
+				function() { return self.prototype.SPEEDCOST; },
 				function(value) {
 
 					value = parseFloat(value, 10);
@@ -372,7 +366,6 @@ Evo.Cell = (function() {
 		}
 	};
 	
-	$(document).ready(self.prototype.setBindings);
 	return self;
 })();
 
@@ -390,9 +383,9 @@ Evo.Phenome = (function() {
 			this.phenotype.fleeDistance		.mutate(1, 400);
 			this.phenotype.birthSize		.mutate(5, 15);
 			this.phenotype.growthRate		.mutate(.000001, .005);
-			this.phenotype.color_r		.mutate(0, 200, true);
-			this.phenotype.color_g		.mutate(0, 200, true);
-			this.phenotype.color_b		.mutate(0, 200, true);
+			this.phenotype.color_r		.mutate(10, 200, true);
+			this.phenotype.color_g		.mutate(10, 200, true);
+			this.phenotype.color_b		.mutate(10, 200, true);
 		},
 		
 		generate : function() {
@@ -454,7 +447,7 @@ Evo.Phenotype = (function() {
 		setBindings : function() {
 	
 			new Evo.Binding(
-				$('#CellFactory-mutationRate'),
+				'mutationrate',
 				function() { return self.prototype.mutationRate; },
 				function(value) {
 			
@@ -467,7 +460,7 @@ Evo.Phenotype = (function() {
 			);
 			
 			new Evo.Binding(
-				$('#CellFactory-mutationFactor'),
+				'mutationfactor',
 				function() { return 1 / self.prototype.mutationFactor; },
 				function(value) {
 			
@@ -481,8 +474,6 @@ Evo.Phenotype = (function() {
 			);
 		}
 	};
-	
-	$(document).ready(self.prototype.setBindings);
 	
 	return self;
 })();
@@ -517,7 +508,7 @@ Evo.EnergyGenerator = (function() {
 
 			//Energy per second
 			new Evo.Binding(
-				$('#EnergyGenerator-energyPerSecond'),
+				'energypersecond',
 				function() { return this.energyPerMillisecond * 1000; }.bind(this),
 				function(value) {
 			

@@ -17,6 +17,11 @@ Evo.SceneGraph = (function() {
 		this.cellFactory = new Evo.CellFactory(this);
 		this.ui = new Evo.UI();
 		
+		//TODO - Make a bindings manager?
+		Evo.States.GrowAndDivide.prototype.setBindings();
+		Evo.Binding.prototype.hashToModel();
+		
+		this.cellFactory.generateCells();
 		this.loop.start();
 	};
 	
@@ -238,7 +243,8 @@ Evo.Mouse = (function() {
 		
 		onMouseMove : function(e) {
 			
-			if(typeof(e.pageX) === "number") {
+			if(typeof(e.pageX) === "number" && e.pageX > this.canvas.left) {
+				
 				this.position.x = e.pageX - this.canvas.left;
 				this.position.y = e.pageY - this.canvas.top;
             } else {
