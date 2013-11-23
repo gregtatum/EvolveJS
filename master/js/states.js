@@ -282,7 +282,7 @@ Evo.States.GrowAndDivide = (function() {
 
 		//Energy per second
 		new Evo.Binding(
-			$('#States-GrowAndDivide-GROWTHFACTOR'),
+			'growthfactor',
 			function() { return self.prototype.GROWTHFACTOR },
 			function(value) {
 
@@ -291,7 +291,6 @@ Evo.States.GrowAndDivide = (function() {
 			}.bind(this)
 		);
 	};
-	$(document).ready(self.prototype.setBindings);
 	
 	return self;
 })();
