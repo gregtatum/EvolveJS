@@ -190,16 +190,15 @@ Evo.VMath = (function() {
 	return self;
 })();
 
+// Noise possibly too intensive and not distributed enough...
 Evo.Random = (function() {
-
-	/*
-	 * A pseudo random number generator
-	 * 
-	 * Generates repeatable noise
-	 */
+	
+	 //A pseudo random number generator
+	 //Generates repeatable noise
+	 
 	
 	function self(seed) {
-		this.seed = seed, 10;
+		this.seed = seed || 10;
 	}
 	
 	self.prototype = {

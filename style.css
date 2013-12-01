@@ -50,7 +50,11 @@ canvas {
 	background: -o-radial-gradient(center, ellipse cover,  #ffffff 0%,#f9fbff 51%,#e5f0ff 88%,#e5f3ff 100%);
 	background: -ms-radial-gradient(center, ellipse cover,  #ffffff 0%,#f9fbff 51%,#e5f0ff 88%,#e5f3ff 100%);
 	background: radial-gradient(ellipse at center,  #ffffff 0%,#f9fbff 51%,#e5f0ff 88%,#e5f3ff 100%);
-
+}
+@media screen AND (max-width:767px) {
+	canvas {
+		left:0px;
+	}
 }
 .clearfix:before,
 .clearfix:after {

@@ -1,3 +1,5 @@
+var Evo = Evo || {};
+
 Evo.Grid = (function() {
 	
 	var self = function(scene, gridWidth, gridHeight, pixelWidth, pixelHeight) {

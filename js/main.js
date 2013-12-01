@@ -1,9 +1,5 @@
 var Evo = Evo || {};
 
-setTimeout(function() {
-	//evo.loop.stop();
-}, 2000);
-
 Evo.SceneGraph = (function() {
 	var self = function() {
 		$('document').ready(this.onReady.bind(this));
@@ -86,17 +82,17 @@ Evo.Loop = (function() {
 		//-------------------------------------
 		// Registration Functions
 		
-		registerUpdate : function(listener) {
+		'registerUpdate' : function(listener) {
 			this._updateListeners.push(listener);
 			this._updateLength = this._updateListeners.length;
 		},
 		
-		registerDraw : function(listener) {
+		'registerDraw' : function(listener) {
 			this._drawListeners.push(listener);
 			this._drawLength = this._drawListeners.length;
 		},
         
-        removeUpdate : function(listener) {
+        'removeUpdate' : function(listener) {
             var index = this._updateListeners.indexOf(listener);
             if(index >= 0) {
                 this._updateListeners.splice(index,1);
@@ -104,7 +100,7 @@ Evo.Loop = (function() {
             }
         },
         
-        removeDraw : function(listener) {
+        'removeDraw' : function(listener) {
             var index = this._drawListeners.indexOf(listener);
             if(index >= 0) {
                 this._drawListeners.splice(index,1);
@@ -115,19 +111,19 @@ Evo.Loop = (function() {
 		//-------------------------------------
 		// Looping functions
 		
-		updateTime : function() {
+		'updateTime' : function() {
 			this._timePresent = new Date().getTime();
 			this._dt = Math.min(this._timePresent - this._timePast, 500);
 			this._timePast = this._timePresent;
 		},
 		
-		runUpdateListeners : function(dt) {
+		'runUpdateListeners' : function(dt) {
 			for(this._uI = 0; this._uI < this._updateLength; ++this._uI) {
 				this._updateListeners[this._uI].update(dt);
 			}
 		},
 		
-		runDrawListeners : function(dt) {
+		'runDrawListeners' : function(dt) {
 			this.scene.canvas.context.clearRect(0,0,this.scene.canvas.width, this.scene.canvas.height);
 			
 			for(this._dI = 0; this._dI < this._drawLength; ++this._dI) {
@@ -136,7 +132,7 @@ Evo.Loop = (function() {
 		},
 		
 		//Looping logic
-		mainLoop : function() {
+		'mainLoop' : function() {
 			if(this._isPlaying) {
 				
 				//Calls the animation frame in the context of the window
@@ -148,7 +144,7 @@ Evo.Loop = (function() {
 			this.runDrawListeners(this._dt);
 		},
 				
-		pauseHandler : function(e) {
+		'pauseHandler' : function(e) {
 			if(e) e.preventDefault();
 			
 			if(this._isPlaying) {
@@ -161,13 +157,13 @@ Evo.Loop = (function() {
 			$.uniform.update("#Loop-Pause");
 		},
 		
-		start : function() {
+		'start' : function() {
 			this._isPlaying = true;
 			this._timePast = new Date().getTime();
 			this.mainLoop();
 		},
 		
-		stop : function() {
+		'stop' : function() {
 			this._isPlaying = false;
 		}
 	};
@@ -195,7 +191,11 @@ Evo.Canvas = (function() {
 	self.prototype = {
 		
 		resize : function(e) {
-			this.el.width = ($(window).width() - $('.menu').outerWidth()) * this.ratio;
+			if($(window).width() < 768) {
+				this.el.width = $(window).width() * this.ratio;
+			} else {
+				this.el.width = ($(window).width() - $('.menu').outerWidth()) * this.ratio;
+			}
 			this.el.height = $(window).height() * this.ratio;
 			this.width = this.el.width;
 			this.height = this.el.height;

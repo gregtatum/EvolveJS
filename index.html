@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=0.5" />
 	<meta name="apple-mobile-web-app-capable" content="yes" />
 	<title>Evo.js - An evolution simulation</title>
+	
+	<meta property="og:image" content="images/screenshot.png" />
+	<meta name="description" content="An HTML5 canvas experiment.">
+	
 	<link href='http://fonts.googleapis.com/css?family=Roboto:400,500,700,300,100' rel='stylesheet' type='text/css'>
 	<link href='thirdparty/uniform/css/uniform.evo.css' type='text/css' rel='stylesheet' />
 	<link href='style.css' type='text/css' rel='stylesheet' />
@@ -20,6 +24,10 @@
 	<script src="js/math.js"></script>
 	<script src="js/states.js"></script>
 	<script src="js/ui.js"></script>
+	<!--
+	<script src='evo.min.js'></script>
+	-->
+	
 </head>
 
 <body>
@@ -75,8 +83,8 @@
 				<fieldset class='section-subsection' id='section-energy'>
 					<legend>Energy</legend>
 
-					<label for='energypersecond'>Energy Per Second</label>
-					<input id='energypersecond' type='number' min='0' step='1000' />
+					<label for='energypersecond'>Energy Given Out</label>
+					<input id='energypersecond' type='number' min='0' step='1' />
 
 					<label for='growthfactor'>Growth Efficiency</label>
 					<input id='growthfactor' type='number' min='.01' max='1000' step='0.01' />

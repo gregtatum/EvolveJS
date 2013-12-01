@@ -1,3 +1,5 @@
+var Evo = Evo || {};
+
 Evo.CellFactory = (function() {
 	
 	var self = function(scene, mouse) {
@@ -509,11 +511,10 @@ Evo.EnergyGenerator = (function() {
 			//Energy per second
 			new Evo.Binding(
 				'energypersecond',
-				function() { return this.energyPerMillisecond * 1000; }.bind(this),
+				function() { return this.energyPerMillisecond; }.bind(this),
 				function(value) {
 			
 					value = parseFloat(value, 10);
-					value /= 1000;
 					value = Math.max(value, 0);
 					
 					this.energyPerMillisecond = value;

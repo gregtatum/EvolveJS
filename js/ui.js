@@ -1,3 +1,5 @@
+var Evo = Evo || {};
+
 Evo.UI = (function() {
 
 	var self = function() {

@@ -1,3 +1,5 @@
+var Evo = Evo || {};
+
 Evo.StateMachine = (function() {
 	
 	var self = function() {
@@ -191,8 +193,6 @@ Evo.States.FleeMouse = (function() {
 		this.fleeSpeed = fleeSpeed;
 		this.fleeDistance = fleeDistance;
 		
-		this.currentWeight;
-		
 		this.prevDirection = new Evo.Vector(0,0);
 		this.prevSpeed = 0.0;
 		this.interpolationAmount = 1.0;
@@ -257,10 +257,6 @@ Evo.States.GrowAndDivide = (function() {
 		
 		this.actor.size = this.actor.size + this.actor.energy * this.GROWTHFACTOR;
 		this.actor.energy = 0;
-		
-		if(this.actor.i == 0) {
-			//console.log(this.actor.energy, this.actor.size, growth * this.actor.size);
-		}
 		
 		if(this.actor.size > this.divideSize) {
 			//Make sure we don't get too big
