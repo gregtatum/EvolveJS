@@ -17,6 +17,7 @@ Evo.StateMachine = (function() {
 		add : function(state) {
 			if(this.currentStates.indexOf(state) >= 0) return; //Do not add twice
 			if(typeof state.onAdd === "function") state.onAdd();
+			state.stateMachine = this;
 			this.currentStates.push(state);
 		},
 
@@ -24,6 +25,7 @@ Evo.StateMachine = (function() {
 			var index = this.currentStates.indexOf(state);
 			if(index >= 0) {
 				if(typeof this.currentStates[index] === "function") this.currentStates[index].onRemove();
+				this.currentStates[index].stateMachine = null;
 				this.currentStates.splice(index,1);
 			}
 		},
@@ -61,10 +63,10 @@ Evo.States.Roam = (function() {
 		this.direction.x = (Math.random() * 2) - 1;
 		this.direction.y = (Math.random() * 2) - 1;
 		if(Evo.Vector.is3d) this.direction.z = (Math.random() * 2) - 1;
+		
 	};
 	
 	self.prototype.update = function() {
-		
 		this.direction.x = Math.min((Math.random() - 0.5) / 10 + this.direction.x, 1);
 		this.direction.y = Math.min((Math.random() - 0.5) / 10 + this.direction.y, 1);
 		if(Evo.Vector.is3d) this.direction.z = Math.min((Math.random() - 0.5) / 10 + this.direction.z, 1);
@@ -75,6 +77,14 @@ Evo.States.Roam = (function() {
 	
 	return self;
 })();
+
+Evo.States.FleeWalls = function(actor, canvas) {
+	if(Evo.Vector.is2d) {
+		return new Evo.States.FleeWalls2d(actor, canvas);
+	} else {	
+		return new Evo.States.FleeWalls3d(actor, canvas);
+	}
+};
 
 Evo.States.FleeWalls2d = (function() {
 	
@@ -119,11 +129,60 @@ Evo.States.FleeWalls2d = (function() {
 	return self;
 })();
 
-Evo.States.Boids = (function() {
+Evo.States.FleeWalls3d = (function() {
+	
+	var self = function(actor, canvas) {
+		this.actor = actor;
+		this.canvas = canvas;
+		
+		//The margin is a quarter of the document
+		this.MARGIN = 0;
+		this.origin = new THREE.Vector3(0,0,0);
+		this.direction = new THREE.Vector3(0,0,0);
+		this.distance = 0;
+		this.fleeStarts = 100;
+		this.fleeEnds = 300;
+		this.fleeMargin = this.fleeEnds - this.fleeStarts;
+		
+		this.direction = new THREE.Vector3(0,0,0);
+		this.weight = 0;
+	};
+	
+	self.prototype.update = function() {
+		
+		this.distance = this.origin.distanceTo(this.actor.position);
+		
+		//If there is a direction to go
+		if(this.distance > this.fleeStarts) {
+			
+			//Crude/cheap weight calculator
+			
+			this.direction.copy(this.actor.position).normalize().negate();
+			
+			//this.weight = Math.max(this.fleeMargin - (this.distance - this.fleeStarts), 0) / this.fleeMargin;
+			this.weight = this.direction.x * this.direction.x + this.direction.y * this.direction.y + this.direction.z * this.direction.z;
+			
+
+			this.actor.addWeightedDirection(this.direction, this.weight * 1);
+		}
+	};
+	self.prototype.onAdd = function() {
+		
+	};
+	self.prototype.onRemove = function() {
+		
+	};
+	
+	return self;
+})();
+
+Evo.States.Boids2d = (function() {
 	
 	var self = function(actor) {
-		this.actor = actor;
 		
+		if(Evo.Vector.is3d) console.warn ("Boids are not 3d capable");
+		
+		this.actor = actor;
 		this.speed = 0.05;
 		this.neighborsDirection = new Evo.Vector(0,0);
 		this.neighborsPosition = new Evo.Vector(0,0);
@@ -179,7 +238,7 @@ Evo.States.Boids = (function() {
 	return self;
 })();
 
-Evo.States.FleeMouse = (function() {
+Evo.States.FleeMouse2d = (function() {
 	
 	var self = function(actor, mouse, fleeSpeed, fleeDistance) {
 		this.actor = actor;
@@ -193,7 +252,7 @@ Evo.States.FleeMouse = (function() {
 		this.fleeSpeed = fleeSpeed;
 		this.fleeDistance = fleeDistance;
 		
-		this.prevDirection = new Evo.Vector(0,0);
+		this.prevDirection = new Evo.Vector(0,0,0);
 		this.prevSpeed = 0.0;
 		this.interpolationAmount = 1.0;
 	};
@@ -215,7 +274,7 @@ Evo.States.FleeMouse = (function() {
 			//this.direction.divide(this.distanceToMouse);
 			
 			//Interpolate the direction
-			//this.direction.lerp(this.prevDirection.multiply(this.distanceToMouse), this.interpolationAmount);
+			//this.direction.lerp(this.prevDirection.multiplyScalar(this.distanceToMouse), this.interpolationAmount);
 			
 			this.direction.normalize();
 			
@@ -279,7 +338,7 @@ Evo.States.GrowAndDivide = (function() {
 		//Energy per second
 		new Evo.Binding(
 			'growthfactor',
-			function() { return self.prototype.GROWTHFACTOR },
+			function() { return self.prototype.GROWTHFACTOR; },
 			function(value) {
 
 				value = parseFloat(value, 10);

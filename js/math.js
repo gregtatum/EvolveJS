@@ -1,11 +1,12 @@
 var Evo = Evo || {};
 
-Evo.Vector = (function() {
+Evo.Vector2 = (function() {
 	var self = function(x,y) {
 		this.x = x || 0;
 		this.y = y || 0;
 	};
 	
+	self.is2d = true;
 	self.is3d = false;
 	
 	self.prototype.clone = function() {
@@ -17,7 +18,7 @@ Evo.Vector = (function() {
 		this.y = vector.y;
 	};
 
-    self.prototype.multiply = function(value) {
+    self.prototype.multiplyScalar = function(value) {
 		if(typeof(value) === "number") {
 			this.x *= value;
 			this.y *= value;
@@ -28,8 +29,6 @@ Evo.Vector = (function() {
 		return this;
 	};
 	
-	self.prototype.multiplyScalar = self.prototype.multiply;
-    
 	self.prototype.divide = function(value) {
 		if(typeof(value) === "number") {
 			this.x /= value;
@@ -79,7 +78,7 @@ Evo.Vector = (function() {
 		return Math.sqrt(this.dot(this));
 	};
     
-    self.prototype.distance = function(vectorRef) {
+    self.prototype.distanceTo = function(vectorRef) {
 		var vector = vectorRef.clone();
 		vector.subtract(this);
 		return vector.length();
@@ -112,10 +111,19 @@ Evo.Vector = (function() {
 	return self;
 })();
 
+Evo.Vector = (function() {
+
+	THREE.Vector3.is2d = false;
+	THREE.Vector3.is3d = true;
+	
+	return THREE.Vector3;
+	//return Evo.Vector2;
+})();
+
 Evo.VMath = (function() {
 	var self = {
 		
-		multiply : function(vector, value) {
+		multiplyScalar : function(vector, value) {
 			
 			var v = vector.clone();
 			v.multiply(value);
@@ -193,8 +201,8 @@ Evo.VMath = (function() {
 // Noise possibly too intensive and not distributed enough...
 Evo.Random = (function() {
 	
-	 //A pseudo random number generator
-	 //Generates repeatable noise
+	//A pseudo random number generator
+	//Generates repeatable noise
 	 
 	
 	function self(seed) {
@@ -206,14 +214,14 @@ Evo.Random = (function() {
 		get : function(max, min) {
 			return Math.random();
 			//Credit: http://indiegamr.com/generate-repeatable-random-numbers-in-js/
-			
+			/*
 			max = max || 1;
 			min = min || 0;
 
 			this.seed = (this.seed * 9301 + 49297) % 233280;
 			var rnd = this.seed / 233280;
 
-			return min + rnd * (max - min);
+			return min + rnd * (max - min);*/
 		},
 				
 		getInt : function(max, min) {

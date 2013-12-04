@@ -1,44 +1,133 @@
 var Evo = Evo || {};
 
-Evo.SceneGraph = (function() {
+Evo.Scene = (function() {
 	var self = function() {
 		$('document').ready(this.onReady.bind(this));
 	};
 	
-	self.prototype.onReady = function() {
-		this.page = new Evo.Page();
-		this.loop = new Evo.Loop(this);
-		this.canvas = new Evo.Canvas(this.loop);
-		this.mouse = new Evo.Mouse(this, this.canvas);
-		this.cellFactory = new Evo.CellFactory(this);
-		this.ui = new Evo.UI();
-		
-		//TODO - Make a bindings manager?
-		Evo.States.GrowAndDivide.prototype.setBindings();
-		Evo.Binding.prototype.hashToModel();
-		
-		this.cellFactory.generateCells();
-		this.loop.start();
-	};
-	
-	return self;
-})();
-
-var evo = new Evo.SceneGraph();
-
-Evo.Page = (function() {
-	var self = function() {
-		this.startUniform();
-	};
-	
 	self.prototype = {
-		startUniform : function() {
-			$('input, select, textarea').uniform();
+		onReady : function() {
+			this.ui = new Evo.UI();
+			this.loop = new Evo.Loop(this);
+			this.canvas = new Evo.Canvas(this.loop);
+			this.mouse = new Evo.Mouse(this, this.canvas);
+			this.cellFactory = new Evo.CellFactory(this);
+
+			//TODO - Make a bindings manager?
+			Evo.States.GrowAndDivide.prototype.setBindings();
+			Evo.Binding.prototype.hashToModel();
+
+			
+			if(Evo.Vector.is3d) {
+				Evo.ExtendSceneTo3d(self.prototype);
+				this.setup3d();
+				this.loop.registerDraw(this);
+			}
+
+			this.cellFactory.generateCells();
+			this.loop.start();
 		}
+				
 	};
 	
 	return self;
 })();
+
+Evo.ExtendSceneTo3d = function(prototypeRef) {
+
+	$.extend(prototypeRef, {
+
+		setup3d : function() {
+			this.renderer = undefined;
+			this.div = document.getElementById('evo');
+			this.scene = new THREE.Scene();
+			this.camera = new THREE.PerspectiveCamera(50, this.canvas.width / this.canvas.height, 1, 3000); //(fov, aspect ratio, near, far frustrum)
+			
+			
+			this.camera.position.x = (this.canvas.width + this.canvas.height) / 4;
+			this.camera.position.y = (this.canvas.width + this.canvas.height) / 4;
+			this.camera.position.z = (this.canvas.width + this.canvas.height) / 4;
+			
+			console.log(this.camera.position);
+			
+			this.controls = new THREE.OrbitControls( this.camera, this.canvas.el );
+
+			this.addRenderer();
+			this.addLights();
+			this.addGrid();
+			this.addEventListeners();
+		},
+
+		addLights : function() {
+			this.lights = [];
+			this.lights[0] = new THREE.AmbientLight( 0xffffff );
+			this.lights[1] = new THREE.PointLight( 0xffffff, 1, 0 );
+			this.lights[2] = new THREE.PointLight( 0xffffff, 1, 0 );
+			this.lights[3] = new THREE.PointLight( 0xffffff, 1, 0 );
+
+			this.lights[1].position.set(0, 200, 0);
+			this.lights[2].position.set(100, 200, 100);
+			this.lights[3].position.set(-100, -200, -100);
+
+			//this.scene.add( this.lights[0] );
+			this.scene.add( this.lights[1] );
+			this.scene.add( this.lights[2] );
+			this.scene.add( this.lights[3] );
+		},
+
+		addGrid : function() {
+
+			var line_material = new THREE.LineBasicMaterial( { color: 0xc0c0f0 } ),
+				geometry = new THREE.Geometry(),
+				floor = -75, step = 25;
+
+			for ( var i = 0; i <= 40; i ++ ) {
+
+				geometry.vertices.push( new THREE.Vector3( - 500, floor, i * step - 500 ) );
+				geometry.vertices.push( new THREE.Vector3(   500, floor, i * step - 500 ) );
+
+				geometry.vertices.push( new THREE.Vector3( i * step - 500, floor, -500 ) );
+				geometry.vertices.push( new THREE.Vector3( i * step - 500, floor,  500 ) );
+
+			}
+
+			this.grid = new THREE.Line( geometry, line_material, THREE.LinePieces );
+			this.scene.add( this.grid );
+			this.grid.scale.multiplyScalar(3);
+
+		},
+
+		addRenderer : function() {
+			this.renderer = new THREE.WebGLRenderer({
+				canvas : this.canvas.el
+			});
+			this.renderer.setSize( this.canvas.width, this.canvas.height );
+			this.div.appendChild( this.renderer.domElement );
+		},
+
+		addEventListeners : function() {
+			$(window).on('resize', this.resizeHandler.bind(this));
+		},
+
+		resizeHandler : function() {
+
+			console.log('resizing');
+			this.camera.aspect = this.canvas.width / this.canvas.height;
+			this.camera.updateProjectionMatrix();
+
+			this.renderer.setSize( this.canvas.width, this.canvas.height );
+
+		},
+
+		draw : function() {
+			this.controls.update();
+			this.renderer.render( this.scene, this.camera );
+		}
+	});
+};
+
+
+var evo = new Evo.Scene();
 
 
 Evo.Loop = (function() {
@@ -50,7 +139,7 @@ Evo.Loop = (function() {
 		//Create animation frame
 		this._animationFrame = window.requestAnimationFrame	||
 			window.webkitRequestAnimationFrame			||
-			window.mozRequestAnimationFrame   			||
+			window.mozRequestAnimationFrame				||
 			window.oRequestAnimationFrame				||
 			window.msRequestAnimationFrame				||
 			function( callback ){
@@ -82,17 +171,17 @@ Evo.Loop = (function() {
 		//-------------------------------------
 		// Registration Functions
 		
-		'registerUpdate' : function(listener) {
+		registerUpdate : function(listener) {
 			this._updateListeners.push(listener);
 			this._updateLength = this._updateListeners.length;
 		},
 		
-		'registerDraw' : function(listener) {
+		registerDraw : function(listener) {
 			this._drawListeners.push(listener);
 			this._drawLength = this._drawListeners.length;
 		},
         
-        'removeUpdate' : function(listener) {
+        removeUpdate : function(listener) {
             var index = this._updateListeners.indexOf(listener);
             if(index >= 0) {
                 this._updateListeners.splice(index,1);
@@ -100,7 +189,7 @@ Evo.Loop = (function() {
             }
         },
         
-        'removeDraw' : function(listener) {
+        removeDraw : function(listener) {
             var index = this._drawListeners.indexOf(listener);
             if(index >= 0) {
                 this._drawListeners.splice(index,1);
@@ -111,28 +200,26 @@ Evo.Loop = (function() {
 		//-------------------------------------
 		// Looping functions
 		
-		'updateTime' : function() {
+		updateTime : function() {
 			this._timePresent = new Date().getTime();
 			this._dt = Math.min(this._timePresent - this._timePast, 500);
 			this._timePast = this._timePresent;
 		},
 		
-		'runUpdateListeners' : function(dt) {
+		runUpdateListeners : function(dt) {
 			for(this._uI = 0; this._uI < this._updateLength; ++this._uI) {
 				this._updateListeners[this._uI].update(dt);
 			}
 		},
 		
-		'runDrawListeners' : function(dt) {
-			this.scene.canvas.context.clearRect(0,0,this.scene.canvas.width, this.scene.canvas.height);
-			
+		runDrawListeners : function(dt) {
 			for(this._dI = 0; this._dI < this._drawLength; ++this._dI) {
 				this._drawListeners[this._dI].draw(dt);
 			}
 		},
 		
 		//Looping logic
-		'mainLoop' : function() {
+		mainLoop : function() {
 			if(this._isPlaying) {
 				
 				//Calls the animation frame in the context of the window
@@ -144,7 +231,7 @@ Evo.Loop = (function() {
 			this.runDrawListeners(this._dt);
 		},
 				
-		'pauseHandler' : function(e) {
+		pauseHandler : function(e) {
 			if(e) e.preventDefault();
 			
 			if(this._isPlaying) {
@@ -157,13 +244,13 @@ Evo.Loop = (function() {
 			$.uniform.update("#Loop-Pause");
 		},
 		
-		'start' : function() {
+		start : function() {
 			this._isPlaying = true;
 			this._timePast = new Date().getTime();
 			this.mainLoop();
 		},
 		
-		'stop' : function() {
+		stop : function() {
 			this._isPlaying = false;
 		}
 	};
@@ -176,14 +263,17 @@ Evo.Canvas = (function() {
 	var self = function(loop) {
 		
 		this.loop = loop;
-		this.ratio = window['devicePixelRatio'] >= 1 ? window.devicePixelRatio : 1;
+		this.ratio = window.devicePixelRatio >= 1 ? window.devicePixelRatio : 1;
 
 		this.$el = $('canvas');
 		this.el = this.$el.get(0);
 		
-		this.resize();
-		this.context = this.el.getContext('2d');
+		if(!Evo.Vector.is3d) {
+			this.context = this.el.getContext('2d');
+			this.loop.registerDraw(this);
+		}
 		
+		this.resize();
 		$(window).on('resize', this.resize.bind(this));
 	};
 	
@@ -202,10 +292,14 @@ Evo.Canvas = (function() {
 			this.left = this.$el.offset().left;
 			this.top = this.$el.offset().top;
 			
-			if(e) {
+			if(e && this.loop) {
 				this.loop.runUpdateListeners(0);
 				this.loop.runDrawListeners(0);
 			}
+		},
+		
+		draw : function() {
+			this.context.clearRect(0,0,this.width, this.height);
 		}
 	};
 	
@@ -228,7 +322,8 @@ Evo.Mouse = (function() {
 			e.preventDefault(); 
 		};
 		
-		this.scene.loop.registerDraw(this);
+		//TODO - Figure this out
+		//this.scene.loop.registerDraw(this);
 	};
 	
 	//Public Methods
@@ -326,13 +421,13 @@ Evo.Utilities.Examples.Child = (function() { //Subclasses Evo.Example.Parent
 	var self = function(name) {
 		this.parent.call(this, name);
 		console.log(this.name + ' creating child');
-	}
+	};
 	
 	self.prototype = {
 		whine : function() {
 			console.log(this.name + ' child is whining');
 		}
-	}
+	};
 	
 	Evo.Utilities.extend(self, Evo.Utilities.Examples.Parent);
 	

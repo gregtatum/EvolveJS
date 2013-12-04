@@ -5,13 +5,14 @@ Evo.CellFactory = (function() {
 	var self = function(scene, mouse) {
 			
 		this.scene = scene;
-		this.grid = new Evo.Grid(
+		/*this.grid = new Evo.Grid(
 			this.scene,
 			6,
 			4,
 			this.scene.canvas.width,
 			this.scene.canvas.height
-		);
+		);*/
+		this.grid = null;
 		this.energyGenerator = new Evo.EnergyGenerator(this.scene, this);
 		
 		this.random = new Evo.Random(3365);
@@ -52,8 +53,7 @@ Evo.CellFactory = (function() {
 					this.scene,
 					this.grid,
 					this.energyGenerator,
-					this.scene.canvas.width * this.random.get(),
-					this.scene.canvas.height * this.random.get(),
+					this.getStartingVector(),
 					this.random.get()
 				);
 				
@@ -62,6 +62,28 @@ Evo.CellFactory = (function() {
 				cell.i = i; //for debug
 			}
         },
+				
+		getStartingVector : function(vector) {
+	
+			if(!vector) { vector = new Evo.Vector(); }
+			
+			if(Evo.Vector.is2d) {
+				vector.set(
+					this.scene.canvas.width * this.random.get(),
+					this.scene.canvas.height * this.random.get()
+				);
+				return vector;
+			} else {
+				var spread = 500;
+				new vector.set(
+					(spread / 2) - (spread * this.random.get()),
+					(spread / 2) - (spread * this.random.get()),
+					(spread / 2) - (spread * this.random.get())
+				);
+					
+				return vector;
+			}
+		},
 		
 		restart : function() {
 			this.killAllCells();
@@ -76,12 +98,13 @@ Evo.CellFactory = (function() {
 		
 		rebuildGrid : function() {
 	
+			/*
 			console.log('rebuildGrid');
 			this.grid.resize(this.scene.canvas.width, this.scene.canvas.height);
 			
 			for(var i=0, il = this.cells.length; i < il; i++) {
                 if(this.cells[i]) this.cells[i].update(0);
-            }
+            }*/
 		},
 		
         killAllCells : function() {
@@ -91,7 +114,7 @@ Evo.CellFactory = (function() {
                 this.cells[i].kill();
             }
             this.cells.length = 0;
-            this.grid.emptyAllItems(); //TODO - This shouldn't be needed
+            //this.grid.emptyAllItems(); //TODO - This shouldn't be needed
             this.generateCells();
         },
 		
@@ -104,7 +127,7 @@ Evo.CellFactory = (function() {
 			
 			for(var i=0, il = this.cells.length; i < il; i++) {
 				
-				if(this.cells[i].position.distance(click) < this.killDistance) {
+				if(this.cells[i].position.distanceTo(click) < this.killDistance) {
 					this.cells[i].kill();
 					this.cells.splice(i, 1);
 					il--;
@@ -119,16 +142,24 @@ Evo.CellFactory = (function() {
 			
 			
 			cell.stateMachine.add(new Evo.States.Roam(cell));
-			cell.stateMachine.add(new Evo.States.FleeMouse(cell, this.scene.mouse, cell.phenome.get('fleeSpeed'), cell.phenome.get('fleeDistance')));
+			
 			cell.stateMachine.add(new Evo.States.GrowAndDivide(cell, this, cell.phenome.get('growthRate'), cell.phenome.get('birthSize') * 2.5));
-			//cell.stateMachine.add(new Evo.States.Boids(cell));
-			cell.stateMachine.add(new Evo.States.FleeWalls2d(cell, this.scene.canvas));
-			//cell.stateMachine.add(new Evo.States.DieRandomly(cell, this));
+			cell.stateMachine.add(new Evo.States.DieRandomly(cell, this));
 			cell.stateMachine.add(new Evo.States.DieWhenCrowded(cell, this));
+			cell.stateMachine.add(new Evo.States.FleeWalls(cell, this.scene.canvas));
+			if(!Evo.Vector.is3d) {
+				//cell.stateMachine.add(new Evo.States.Boids2d(cell));
+				cell.stateMachine.add(new Evo.States.FleeMouse2d(cell, this.scene.mouse, cell.phenome.get('fleeSpeed'), cell.phenome.get('fleeDistance')));
+				
+			}
+			
 			
 		},
 		
         divideCell : function(cell) {
+	
+			//TODO - Get rid of new declaration here. Pre-allocate cells.
+			
             if(this.cells.length > this.maxCells) return;
             
             //Copy the cell
@@ -136,8 +167,7 @@ Evo.CellFactory = (function() {
 				this.scene,
 				this.grid,
 				this.energyGenerator,
-				cell.position.x,
-				cell.position.y,
+				cell.position.clone(),
 				this.random.get()
 			);
             daughterCell.phenome.copy(cell.phenome);
@@ -221,7 +251,7 @@ Evo.CellFactory = (function() {
 
 Evo.Cell = (function() {
 	
-	var self = function(scene, grid, energyGenerator, x, y, seed) {
+	var self = function(scene, grid, energyGenerator, position, seed) {
 		
 		this.scene = scene;
 		this.grid = grid;
@@ -231,47 +261,90 @@ Evo.Cell = (function() {
 		
 		this.stateMachine = new Evo.StateMachine(seed + 2065);
 		
-		this.phenome = new Evo.Phenome(seed + 6399);
-		this.phenome.generate();
-		this.revert();
 		
-		this.position = new Evo.Vector(x,y);
-		this.direction = new Evo.Vector(1,0);
+		//Z variable is ignored in 2d mode
+		
+		this.position = position;
+		this.direction = new Evo.Vector(1,0,0);
+		this.bounds = new Evo.Vector(this.scene.canvas.width, this.scene.canvas.height, 1);
 		
 		this.speed = 0;
 		this.age = 0;
 		this.energy = 100;
 		
-		this.weightedDirection = new Evo.Vector(0,0);
+		this.weightedDirection = new Evo.Vector(0,0,0);
 		
 		this.weightedSpeed = {
 			speed	: 0,
 			weight	: 0
 		};
 		
-		this.scene.loop.registerDraw(this);
+		if(Evo.Vector.is3d) this.setup3d();
+		
+		this.phenome = new Evo.Phenome(seed + 6399);
+		this.phenome.generate();
+		this.revert();
+		
+		if(Evo.Vector.is2d)	this.scene.loop.registerDraw(this);
 		this.scene.loop.registerUpdate(this);
 	};
 	
 	self.prototype = {
 		
 		SPEEDCOST : 1,
-				
+		
+		setup3d : function() {
+	
+			var boundsSize = (this.scene.canvas.width + this.scene.canvas.height) / 2;
+			
+			this.bounds = new Evo.Vector(boundsSize, boundsSize, boundsSize);
+	
+			this.geometry = new THREE.CubeGeometry(5, 5, 5);
+		
+			this.material = new THREE.MeshPhongMaterial( {
+				color: 0x000000,
+				specular : new THREE.Color( 0xffffff ),
+				shininess : Math.pow(10, 2),
+				emissive : new THREE.Color(), //Color set by phenome in this.revert()
+				shading : THREE.NoShading,
+				wireframe : false,
+				wireframeLinewidth : 3
+			});
+			this.object3d = new THREE.Mesh( this.geometry, this.material );
+			
+			this.object3d.position = this.position;
+			
+			this.scene.scene.add(this.object3d);
+		},
+		
 		kill : function() {
 			this.scene.loop.removeDraw(this);
 			this.scene.loop.removeUpdate(this);
-			this.grid.removeItem(this);
+			if(Evo.Vector.is3d)	this.scene.scene.remove(this.object3d);
+			//this.grid.removeItem(this);
 			this.stateMachine.kill();
 		},
 		
 		revert : function() {
 			this.size = (this.phenome.get('birthSize') / 2) + (this.phenome.get('birthSize') / 2) * this.random.get();
+			this.fillStyle = Evo.Utilities.rgbToFillstyle(
+				this.phenome.get('color_r'),
+				this.phenome.get('color_g'),
+				this.phenome.get('color_b')
+			);
+			if(Evo.Vector.is3d) {
+				this.material.emissive.setRGB(
+					this.phenome.get('color_r') / 255,
+					this.phenome.get('color_g') / 255,
+					this.phenome.get('color_b') / 255
+				);
+			}
 		},
 		
 		addWeightedDirection : function(vector, weight) {		
 	
 			if(isNaN(this.weightedDirection.x)) debugger;
-			vector.multiply(weight);
+			vector.multiplyScalar(weight);
 			this.weightedDirection.add(vector);
 			
 			if(isNaN(this.weightedDirection.x)) debugger;
@@ -283,23 +356,19 @@ Evo.Cell = (function() {
 		},
 		
 		draw : function(dt) {
-					
 			this.scene.canvas.context.beginPath();
-			this.scene.canvas.context.fillStyle = Evo.Utilities.rgbToFillstyle(
-					this.phenome.get('color_r'),
-					this.phenome.get('color_g'),
-					this.phenome.get('color_b')
-				);
+			this.scene.canvas.context.fillStyle = this.fillStyle;
 			this.scene.canvas.context.fillRect(this.position.x, this.position.y, this.size, this.size);
-			
+
 			//Messing around
-			
+
 			//this.scene.canvas.context.arc(this.position.x,this.position.y,this.size,0,2*Math.PI); 
 			//this.scene.canvas.context.font= (this.size * 5) + "px Arial";
 			//this.scene.canvas.context.fillText("cell",this.position.x,this.position.y);
- 
+
 			this.scene.canvas.context.fill();
 		},
+		
 		
 		//Updates
 		
@@ -313,10 +382,12 @@ Evo.Cell = (function() {
 			
 			this.age += dt;
 			
-			this.grid.updateItem(this, this.position.x, this.position.y);
+			//this.grid.updateItem(this, this.position.x, this.position.y);
 		},
 		
 		update_position : function(dt) {
+	
+			var scale3d = 0.0;
 	
 			if(isNaN(this.weightedDirection.x)) debugger;
 			
@@ -330,6 +401,11 @@ Evo.Cell = (function() {
 			this.size -= this.speed * this.SPEEDCOST;
 			
 			this.size = Math.max(this.size, 1);
+			
+			if(Evo.Vector.is3d) {
+				scale3d = this.size / 10;
+				this.object3d.scale.set( scale3d, scale3d, scale3d );
+			}
 			
 			//Calculate the position based on the weighted direction
 			this.weightedDirection.normalize();
@@ -346,10 +422,9 @@ Evo.Cell = (function() {
 		},
 		
 		update_keepOnScreen : function(dt) {
-			if(this.position.x <= 0) {this.position.x += this.scene.canvas.width;}
-			if(this.position.y <= 0) {this.position.y += this.scene.canvas.height;}
-			if(this.position.x > this.scene.canvas.width) {this.position.x -= this.scene.canvas.width;}
-			if(this.position.y > this.scene.canvas.height) {this.position.y -= this.scene.canvas.height;}
+			this.position.x %= this.bounds.x;
+			this.position.y %= this.bounds.y;
+			this.position.z %= this.bounds.z;
 		},
 				
 		setBindings : function() {
@@ -384,7 +459,7 @@ Evo.Phenome = (function() {
 			this.phenotype.fleeSpeed		.mutate(1, 400);
 			this.phenotype.fleeDistance		.mutate(1, 400);
 			this.phenotype.birthSize		.mutate(5, 15);
-			this.phenotype.growthRate		.mutate(.000001, .005);
+			this.phenotype.growthRate		.mutate(0.000001, 0.005);
 			this.phenotype.color_r		.mutate(10, 200, true);
 			this.phenotype.color_g		.mutate(10, 200, true);
 			this.phenotype.color_b		.mutate(10, 200, true);
@@ -402,7 +477,7 @@ Evo.Phenome = (function() {
 			this.phenotype.color_b		= new Evo.Phenotype( parseInt(this.random.get() * brightness, 10), (seed + 8975) );
 			this.phenotype.fleeDistance = new Evo.Phenotype( (150 * this.random.get()) + 180, (seed + 2875));
 			this.phenotype.birthSize	= new Evo.Phenotype( birthSize, (seed + 9587) );
-			this.phenotype.growthRate	= new Evo.Phenotype( .005 * this.random.get(), (seed + 1857) );
+			this.phenotype.growthRate	= new Evo.Phenotype( 0.005 * this.random.get(), (seed + 1857) );
 			//this.phenotype.divideSize	= new Evo.Phenotype( birthSize * 2.5, (seed + 1141) );
 
 		},

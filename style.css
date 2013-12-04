@@ -35,7 +35,7 @@ body {
 	position:relative;
 	padding: 1em;
 }
-canvas {
+#evo {
 	background-color: #fff;
 	position: absolute;
 	top: 0;
@@ -51,8 +51,12 @@ canvas {
 	background: -ms-radial-gradient(center, ellipse cover,  #ffffff 0%,#f9fbff 51%,#e5f0ff 88%,#e5f3ff 100%);
 	background: radial-gradient(ellipse at center,  #ffffff 0%,#f9fbff 51%,#e5f0ff 88%,#e5f3ff 100%);
 }
+#evo > canvas {
+	width:100%;
+	height:100%;
+}
 @media screen AND (max-width:767px) {
-	canvas {
+	#evo {
 		left:0px;
 	}
 }
