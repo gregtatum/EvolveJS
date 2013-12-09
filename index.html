@@ -4,7 +4,7 @@
 	<meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=0.5" />
 	<meta name="apple-mobile-web-app-capable" content="yes" />
-	<title>Evo.js - An evolution simulation</title>
+	<title>EvolveJS - An Evolution Simulator</title>
 	
 	<meta property="og:image" content="images/screenshot.png" />
 	<meta name="description" content="An HTML5 canvas experiment.">
@@ -24,7 +24,7 @@
 	<script src="js/cells.js"></script>
 	<script src="js/graphs.js"></script>
 	<script src="js/math.js"></script>
-	<script src="js/states.js"></script>
+	<script src="js/behaviors.js"></script>
 	<script src="js/ui.js"></script>
 	<!--
 	<script src='evo.min.js'></script>
@@ -34,7 +34,7 @@
 
 <body>
 	<div class='menu clearfix'>
-		<h1 class='menu-title'>Evo<span>.js</span></h1>
+		<h1 class='menu-title'>Evolve<span>JS</span></h1>
 		<p class='menu-subtitle'>An evolution simulator</p>
 		<div>
 			<input type='button' id='Loop-Pause' value='Pause' />
@@ -44,19 +44,11 @@
 
 			<div class='section-level1 section' id='level1'>
 				<fieldset class='section-navigator clearfix'>
-					<legend>Evo Conditions</legend>
+					<legend>Conditions</legend>
 					<input type='button' value='Cells' data-id-show='section-cells' />
 					<!-- <input type='button' value='Behaviors' data-id-show='section-behaviors' /> -->
 					<input type='button' value='Energy Cost' data-id-show='section-energy' />
-				</fieldset>
-				<fieldset>
-					<legend>Tools</legend>
-					
-					<label for='killdistance'>Kill Distance</label>
-					<input id='killdistance' type='number' min='1' step='1' />
-
-					<input id='CellFactory-Restart' type='button' value='Regrow Cells' />
-					<input id='Binding-toHash' type='button' value='Save to URL' />
+					<input type='button' value='Tools' data-id-show='section-tools' />
 				</fieldset>
 			</div>
 			
@@ -93,6 +85,17 @@
 
 					<label for='speedcost'>Cost to Move</label>
 					<input id='speedcost' type='number' min='0' step='0.01' />
+				</fieldset>
+				
+				
+				<fieldset class='section-subsection' id='section-tools'>
+					<legend>Tools</legend>
+					
+					<label for='killdistance'>Kill Distance</label>
+					<input id='killdistance' type='number' min='1' step='1' />
+
+					<input id='CellFactory-Restart' type='button' value='Regrow Cells' />
+					<input id='Binding-toHash' type='button' value='Save to URL' />
 				</fieldset>
 			</div>
 			

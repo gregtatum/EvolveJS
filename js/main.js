@@ -2,7 +2,19 @@ var Evo = Evo || {};
 
 Evo.Scene = (function() {
 	var self = function() {
-		$('document').ready(this.onReady.bind(this));
+		$(function() {
+			
+			if(Evo.Vector.is3d) {
+				//Todo - Make a texture loader? hook into setup3d
+				this.backgroundTexture = THREE.ImageUtils.loadTexture(
+					'images/tmp_background2.jpg',
+					new THREE.UVMapping(),
+					this.onReady.bind(this)
+				);
+			} else {
+				this.onReady();
+			}
+		}.bind(this));
 	};
 	
 	self.prototype = {
@@ -14,7 +26,7 @@ Evo.Scene = (function() {
 			this.cellFactory = new Evo.CellFactory(this);
 
 			//TODO - Make a bindings manager?
-			Evo.States.GrowAndDivide.prototype.setBindings();
+			Evo.Behavior.GrowAndDivide.prototype.setBindings();
 			Evo.Binding.prototype.hashToModel();
 
 			
@@ -24,7 +36,7 @@ Evo.Scene = (function() {
 				this.loop.registerDraw(this);
 			}
 
-			this.cellFactory.generateCells();
+			this.cellFactory.start();
 			this.loop.start();
 		}
 				
@@ -41,7 +53,8 @@ Evo.ExtendSceneTo3d = function(prototypeRef) {
 			this.renderer = undefined;
 			this.div = document.getElementById('evo');
 			this.scene = new THREE.Scene();
-			this.camera = new THREE.PerspectiveCamera(50, this.canvas.width / this.canvas.height, 1, 3000); //(fov, aspect ratio, near, far frustrum)
+			this.cameraFov = 50;
+			this.camera = new THREE.PerspectiveCamera(this.cameraFov, this.canvas.width / this.canvas.height, 1, 5000); //(fov, aspect ratio, near, far frustrum)
 			
 			
 			this.camera.position.x = (this.canvas.width + this.canvas.height) / 4;
@@ -51,10 +64,12 @@ Evo.ExtendSceneTo3d = function(prototypeRef) {
 			console.log(this.camera.position);
 			
 			this.controls = new THREE.OrbitControls( this.camera, this.canvas.el );
+			this.controls.noZoom = true;
 
 			this.addRenderer();
 			this.addLights();
 			this.addGrid();
+			//this.addBackground();
 			this.addEventListeners();
 		},
 
@@ -107,6 +122,18 @@ Evo.ExtendSceneTo3d = function(prototypeRef) {
 
 		addEventListeners : function() {
 			$(window).on('resize', this.resizeHandler.bind(this));
+			
+			this.canvas.el.addEventListener( 'mousewheel', this.onMouseWheel.bind(this), false );
+			this.canvas.el.addEventListener( 'DOMMouseScroll', this.onMouseWheel.bind(this), false);
+		},
+				
+		addBackground : function() {
+			this.backgroundMesh = new THREE.Mesh(
+				new THREE.SphereGeometry( 3000, 60, 40 ),
+				new THREE.MeshBasicMaterial( { map: this.backgroundTexture } ) 
+			);
+			this.backgroundMesh.scale.x = -1;
+			this.scene.add( this.backgroundMesh );
 		},
 
 		resizeHandler : function() {
@@ -119,16 +146,45 @@ Evo.ExtendSceneTo3d = function(prototypeRef) {
 
 		},
 
+		onMouseWheel : function (event) {
+			event.preventDefault();
+			// WebKit
+
+			if ( event.wheelDeltaY ) {
+
+				this.cameraFov -= event.wheelDeltaY * 0.05;
+
+			// Opera / Explorer 9
+
+			} else if ( event.wheelDelta ) {
+
+				this.cameraFov -= event.wheelDelta * 0.05;
+
+			// Firefox
+
+			} else if ( event.detail ) {
+
+				this.cameraFov += event.detail * 1.0;
+
+			}
+			
+			this.cameraFov = Math.min(this.cameraFov, 140);
+			this.cameraFov = Math.max(this.cameraFov, 20);
+			
+			this.camera.projectionMatrix.makePerspective(this.cameraFov, this.canvas.width / this.canvas.height, 1, 5000);
+
+		},
+
 		draw : function() {
+			
+			this.controls.rotateLeft(0.0005);
 			this.controls.update();
 			this.renderer.render( this.scene, this.camera );
 		}
 	});
 };
 
-
 var evo = new Evo.Scene();
-
 
 Evo.Loop = (function() {
 	
@@ -281,11 +337,7 @@ Evo.Canvas = (function() {
 	self.prototype = {
 		
 		resize : function(e) {
-			if($(window).width() < 768) {
-				this.el.width = $(window).width() * this.ratio;
-			} else {
-				this.el.width = ($(window).width() - $('.menu').outerWidth()) * this.ratio;
-			}
+			this.el.width = $(window).width() * this.ratio;
 			this.el.height = $(window).height() * this.ratio;
 			this.width = this.el.width;
 			this.height = this.el.height;

@@ -265,7 +265,7 @@ div.button {
 	margin-bottom: 2px;
 	margin-top: 2px;
 	width: 100%;
-	color: #555;
+	color: #FFF;
 	text-shadow: none;
 	text-transform: uppercase;
 	font-size: 0.85em;
@@ -308,14 +308,16 @@ div.button span {
 	text-align: center;
 	height: inherit;
 	padding: 0 1em;
-	background: #eee;
-	border: 1px solid #aaa;
+	background: rgba(189, 189, 189, 0.96);
+	/* border: 1px solid #75B4AD; */
 	border-radius: 0.5em;
+	text-shadow: 0 0 0.1em #000;
+	background: linear-gradient(to bottom, rgba(224, 224, 224, 1) 0%,rgba(165, 165, 165, 1) 100%);
+	box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.39);
 }
 div.button.hover span,
 div.button.focus span {
-	background-color:#fff;
-}
+	background: linear-gradient(to bottom, rgba(238, 238, 238, 1) 0%,rgba(189, 189, 189, 1) 100%);}
 div.button.disabled span,
 div.button.disabled.active span {
 	color: #aaa;
@@ -350,7 +352,8 @@ div.button span {
 }
 div.button.hover span,
 div.button.focus span {
-	color: #555;
+	/* color: #fff; */
+	text-shadow: 0 0 0.3em rgba(0, 0, 0, 0.67);
 }
 div.button.disabled span,
 div.button.disabled.active span {

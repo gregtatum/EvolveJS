@@ -28,18 +28,19 @@ body {
 	text-shadow:1px 1px 3px rgba(0,0,0,0.5);
 }
 .menu {
-	width:200px;
-	min-height:100%;
-	
-	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#484b4c', endColorstr='#3c3f40',GradientType=0 ); /* IE6-9 */
+	width: 14.5em;
+	height: 100%;
 	position:relative;
 	padding: 1em;
+	z-index:2;
+	overflow-y: scroll;
 }
 #evo {
 	background-color: #fff;
 	position: absolute;
 	top: 0;
-	left: 200px;
+	width:100%;
+	height:100%;
 	
 	box-shadow: 0 0 100px rgba(0,150,257,0.5) inset;
 	
@@ -76,16 +77,18 @@ h1 > span {
 	color:#909b9f;
 	font-size: 0.75em;
 	text-transform: uppercase;
-	font-weight: 300;
+	font-weight: 100;
 }
 .menu-title {
     margin: 0;
-    font-size: 4em;
+    font-size: 3.2em;
     text-align: center;
+    font-weight: 800;
+    margin-bottom: -0.1em;
 }
 .menu-subtitle {
     text-transform: uppercase;
-    font-size: 0.8em;
+    font-size: 0.9em;
     margin: 0.1em 0 3em;
     text-align: center;
     color: #73848A;
@@ -96,22 +99,33 @@ fieldset {
     border-color: #777;
     border-radius: 1em;
     background-color: rgba(0,0,0,0.075);
+    width: 100%;
 }
 legend {
-    color: aliceblue;
-    font-size: 1.35em;
+    color: #749FB3;
+    font-size: 1.25em;
     text-align: center;
-    font-weight: 100;
+    font-weight: 800;
+    text-shadow: 0em 0em 0.5em rgba(255, 255, 255, 0.43);
+    letter-spacing: 0.05em;
+    background: #FFF;
+    border-radius: 1em;
+    padding: 0 0.4em;
+    box-shadow: 0 0 1em rgba(0, 113, 189, 0.17);
+    border: 2px solid #B5C6CF;
 }
 label {
     display: block;
     margin-top: 0.6em;
     font-size: 0.9em;
+    text-shadow: 0.1em 0.1em 0.1em #fff;
+    color: #525252;
+    font-weight: 600;
 }
 div.back-button span {
-    background: #fff;
     padding-left: 0em;
-    display: inline-block; border-radius: 5em; padding: 0 0.6em; box-shadow: -0.2em 0.2em 0.6em #000;
+    display: inline-block; border-radius: 5em; padding: 0 0.6em; 
+    box-shadow: -0.2em 0.2em 0.6em rgba(0, 103, 162, 0.3);
 }
 .back-button.show {
 	display:block;
@@ -177,4 +191,15 @@ div.back-button span {
 }
 .back-button {
     position: absolute; top: 1.9em; right: -0.6em; z-index: 2;
+}
+@media screen and (max-width:767px) {
+	.menu {
+		height: 5.5em;
+		width: 100%;
+		font-size: 0.9em;
+		padding: 0.5em 1em;
+	}
+	.menu-title, .menu-subtitle {
+		text-align:left;
+	}
 }

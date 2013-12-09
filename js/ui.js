@@ -133,9 +133,7 @@ Evo.Binding = (function() {
 			
 			for(; g < gl; g++) {
 				for(b=0; b < bl; b++) {
-					console.log(bindings[b].domId, getVars[g].name);
 					if(bindings[b].domId === getVars[g].name && getVars[g].name !== undefined) {
-						//console.log(bindings[b].domId, getVars[g].value);
 						bindings[b].updateView(getVars[g].value);
 						bindings[b].updateModel();
 					}
