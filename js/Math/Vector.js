@@ -116,11 +116,13 @@ Evo.Vector2 = (function() {
 
 Evo.Vector = (function() {
 
+	THREE.Vector2.is2d = true;
+	THREE.Vector2.is3d = false;
 	THREE.Vector3.is2d = false;
 	THREE.Vector3.is3d = true;
 	
-	return THREE.Vector3;
-	//return Evo.Vector2;
+	//return THREE.Vector3;
+	return THREE.Vector2;
 })();
 
 Evo.VMath = (function() {
@@ -163,7 +165,7 @@ Evo.VMath = (function() {
 		},
 		
 		dot : function(vector1, vector2) {
-			return vector.dot(vector2);
+			return vector1.dot(vector2);
 		},
 		
 		length : function(vector) {

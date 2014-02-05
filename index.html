@@ -19,16 +19,13 @@
 	<script src="thirdparty/threejs/three.min.js"></script>
 	<script src="thirdparty/threejs/controls/OrbitControls.js"></script>
 	
-	<!-- Evo -->
-	<script src="js/main.js"></script>
-	<script src="js/cells.js"></script>
-	<script src="js/graphs.js"></script>
-	<script src="js/math.js"></script>
-	<script src="js/behaviors.js"></script>
-	<script src="js/ui.js"></script>
-	<!--
-	<script src='evo.min.js'></script>
-	-->
+	<script src='build/evolve.js'></script>
+	
+	<script>
+		$(function() {
+			window.evo = new Evo.Scene();
+		});
+	</script>
 	
 </head>
 
@@ -44,10 +41,10 @@
 
 			<div class='section-level1 section' id='level1'>
 				<fieldset class='section-navigator clearfix'>
-					<legend>Conditions</legend>
+					<div class='legend'>Conditions</div>
 					<input type='button' value='Cells' data-id-show='section-cells' />
 					<!-- <input type='button' value='Behaviors' data-id-show='section-behaviors' /> -->
-					<input type='button' value='Energy Cost' data-id-show='section-energy' />
+					<input type='button' value='Food' data-id-show='section-energy' />
 					<input type='button' value='Tools' data-id-show='section-tools' />
 				</fieldset>
 			</div>
@@ -59,13 +56,21 @@
 				</div>
 
 				<fieldset class='section-subsection' id='section-cells'>
-					<legend>Cells</legend>
+					<div class='legend'>Cells</div>
 
-					<label for='mutationrate'>Mutation Rate</label>
-					<input id='mutationrate' class='percentage' type='number' min='0' max='1' step='0.1' />
-
+					<label for='mutationrate'>Rate of Mutation</label>
+					<div class='range-input range-input-big-max'>
+						<div class='range-input-min'>0</div>
+						<div class='range-input-max'>100</div>
+						<input id='mutationrate' class='percentage' type="range" name="points"  min='0' max='1' step='0.05'>
+					</div>
+					
 					<label for='mutationfactor'>Mutation Magnitude</label>
-					<input id='mutationfactor' class='percentage' type='number' min='.01' max='1000' step='0.01' />
+					<div class='range-input'>
+						<div class='range-input-min'>0</div>
+						<div class='range-input-max'>5</div>
+						<input id='mutationfactor' class='percentage' type='range' min='.01' max='5' step='0.1' />
+					</div>
 
 					<label for='maxcells'>Max Cells</label>
 					<input id='maxcells' type='number' min='1' step='1' />
@@ -75,30 +80,53 @@
 				</fieldset>
 
 				<fieldset class='section-subsection' id='section-energy'>
-					<legend>Energy</legend>
+					<div class='legend'>Food</div>
 
-					<label for='energypersecond'>Energy Given Out</label>
-					<input id='energypersecond' type='number' min='0' step='1' />
+					<label for='energypersecond'>Food Given Out</label>
+					<div class='range-input'>
+						<div class='range-input-min'>0</div>
+						<div class='range-input-max'>25</div>
+						<input id='energypersecond' type='range' min='0' max='25' step='0.1' />
+					</div>
 
-					<label for='growthfactor'>Growth Efficiency</label>
-					<input id='growthfactor' type='number' min='.01' max='1000' step='0.01' />
-
+					<label for='growthfactor'>Growth Speed</label>
+					<div class='range-input'>
+						<div class='range-input-min'>&gt;0</div>
+						<div class='range-input-max'>1</div>
+						<input id='growthfactor' type='range' min='.00005' max='1' step='.0005' />
+					</div>
+					
 					<label for='speedcost'>Cost to Move</label>
-					<input id='speedcost' type='number' min='0' step='0.01' />
+					<div class='range-input'>
+						<div class='range-input-min'>0</div>
+						<div class='range-input-max'>1</div>
+						<input id='speedcost' type='range' min='0' max='1' step='0.001' />
+					</div>
+					
 				</fieldset>
 				
 				
 				<fieldset class='section-subsection' id='section-tools'>
-					<legend>Tools</legend>
+					<div class='legend'>Tools</div>
 					
 					<label for='killdistance'>Kill Distance</label>
-					<input id='killdistance' type='number' min='1' step='1' />
+					<div class='range-input range-input-big-max'>
+						<div class='range-input-min'>1</div>
+						<div class='range-input-max'>300</div>
+						<input id='killdistance' type='range' min='1' max='300' step='1' />
+					</div>
 
+					<label for='CellFactory-Restart'>Restart Simulation</label>
 					<input id='CellFactory-Restart' type='button' value='Regrow Cells' />
+					
+					<label for='Binding-toHash'>Save Your Settings</label>
 					<input id='Binding-toHash' type='button' value='Save to URL' />
 				</fieldset>
 			</div>
-			
+		
+			<script>
+				new Evo.UI();
+			</script>
 		</div>
 	</div>
 	<div id='evo'><canvas class='evo-canvas'></canvas></div>

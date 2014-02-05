@@ -333,6 +333,7 @@ textarea.uniform {
 	padding: 0.5em 1em;
 	
 	border-radius: 0.7em;
+	box-shadow: inset 1px 3px 4px rgba(0, 0, 0, 0.07);
 }
 input.uniform-input.hover,
 input.uniform-input.focus,

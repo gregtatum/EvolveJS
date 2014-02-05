@@ -21,6 +21,7 @@ Evo.EnergyGenerator = (function() {
 	self.prototype = {
 		
 		update : function(dt) {
+			console.log(dt);
 			this.energy = this.energyPerMillisecond * dt;
 			this.energyPerActor = this.energy / this.cellFactory.getLiveCellCount();
 		},

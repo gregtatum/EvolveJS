@@ -20,6 +20,8 @@ Evo.CellFactory = (function() {
 		this.maxCells = Evo.Vector.is2d ? 1500 : 400;
 		this.cellStartCount = parseInt(this.maxCells / 15, 10);
 		this.killDistance = 100;
+		this.killDistanceSq = Math.pow(this.killDistance, 2);
+		
 		this.scene.mouse.setDrawRadius(this.killDistance);
 		this.energyGenerator = new Evo.EnergyGenerator(this.scene, this);
 		
@@ -31,7 +33,11 @@ Evo.CellFactory = (function() {
 		Evo.Phenotype.prototype.setBindings();
 		
 		//$(this.scene.canvas.el).click(this.restart.bind(this));
-		$(this.scene.canvas.el).on('mousedown', this.mouseKillCells.bind(this));
+		if(Evo.Vector.is2d) {
+			$(this.scene.canvas.el).on('mousedown', this.mouseKillCells2d.bind(this));
+		} else {
+			$(this.scene.canvas.el).on('mousedown', this.mouseKillCells3d.bind(this));
+		}
 		$('#CellFactory-Restart').click(this.restart.bind(this));
 		$(window).on('resize', this.rebuildGrid.bind(this));
 	};
@@ -139,7 +145,7 @@ Evo.CellFactory = (function() {
             
         },
 		
-		mouseKillCells : function(e) {
+		mouseKillCells2d : function(e) {
 	
 			if(e) e.preventDefault();
 			
@@ -148,8 +154,19 @@ Evo.CellFactory = (function() {
 			for(var i=0, il = this.cells.length; i < il; i++) {
 				
 				if(this.cells[i].position.distanceTo(click) < this.killDistance) {
-					this.cells[i].setToDead();
-					this.deadCells.push(this.cells[i]);
+					this.cellIsDead(this.cells[i]);
+				}
+            }
+		},
+		
+		mouseKillCells3d : function(e) {
+	
+			if(e) e.preventDefault();
+			
+			for(var i=0, il = this.cells.length; i < il; i++) {
+				
+				if(this.scene.mouse.ray.distanceToPoint(this.cells[i].position) < this.killDistance) {
+					this.cellIsDead(this.cells[i]);
 				}
             }
 		},
@@ -165,6 +182,8 @@ Evo.CellFactory = (function() {
 			if(Evo.Vector.is2d) {
 				//cell.behaviorManager.add(new Evo.Behavior.Boids2d(cell));
 				cell.behaviorManager.add(new Evo.Behavior.FleeMouse2d(cell, this.scene.mouse, cell.phenome.get('fleeSpeed'), cell.phenome.get('fleeDistance')));	
+			} else {
+				cell.behaviorManager.add(new Evo.Behavior.FleeMouse3d(cell, this.scene.mouse, cell.phenome.get('fleeSpeed'), cell.phenome.get('fleeDistance')));
 			}
 		},
 		

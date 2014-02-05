@@ -20,7 +20,6 @@ Evo.Scene = (function() {
 	
 	self.prototype = {
 		start : function() {
-			this.ui = new Evo.UI();
 			this.loop = new Evo.Loop(this);
 			this.canvas = new Evo.Canvas(this.loop);
 			this.mouse = new Evo.Mouse(this, this.canvas);

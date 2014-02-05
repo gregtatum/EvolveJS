@@ -174,6 +174,7 @@ Evo.Cell = (function() {
 
 			this.size = Math.max(this.size, 1);
 
+			if(this.size === 1) debugger;
 
 			//Calculate the position based on the weighted direction
 			this.weightedDirection.normalize();

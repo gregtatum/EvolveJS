@@ -54,18 +54,25 @@ module.exports = function(grunt) {
 			files: ['Gruntfile.js', 'js/**/*.js'],
 			// configure JSHint (documented at http://www.jshint.com/docs/)
 			options: {
-					// more options here if you want to override JSHint globals
 				globals: {
-					jQuery: true,
-					console: true,
-					Evo : true
-				}
+					Evo: true,
+					THREE: true,
+					module: true
+				},
+				devel: true,
+				jquery: true,
+				browser: true,
+				debug: true, //allow debug statements
+				eqeqeq: true, //must use ===
+				latedef: true, //variables must be defined before use
+				undef: true //all variables must be declared
+				
 			}
 		},
 		
 		watch: {
 			files: src,
-			tasks: ['jshint']
+			tasks: ['jshint', 'concat_in_order', 'beep']
 		}
 	});
 
@@ -75,6 +82,7 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-contrib-watch');
 	grunt.loadNpmTasks('grunt-contrib-concat');
 	grunt.loadNpmTasks('grunt-concat-in-order');
+	grunt.loadNpmTasks('grunt-beep');
 	
 	// Default task(s).
 	grunt.registerTask('default', ['concat_in_order', 'uglify']);

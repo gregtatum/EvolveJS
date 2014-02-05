@@ -121,11 +121,13 @@ Evo.Vector2 = (function() {
 
 Evo.Vector = (function() {
 
+	THREE.Vector2.is2d = true;
+	THREE.Vector2.is3d = false;
 	THREE.Vector3.is2d = false;
 	THREE.Vector3.is3d = true;
 	
-	return THREE.Vector3;
-	//return Evo.Vector2;
+	//return THREE.Vector3;
+	return THREE.Vector2;
 })();
 
 Evo.VMath = (function() {
@@ -168,7 +170,7 @@ Evo.VMath = (function() {
 		},
 		
 		dot : function(vector1, vector2) {
-			return vector.dot(vector2);
+			return vector1.dot(vector2);
 		},
 		
 		length : function(vector) {
@@ -227,7 +229,6 @@ Evo.Scene = (function() {
 	
 	self.prototype = {
 		start : function() {
-			this.ui = new Evo.UI();
 			this.loop = new Evo.Loop(this);
 			this.canvas = new Evo.Canvas(this.loop);
 			this.mouse = new Evo.Mouse(this, this.canvas);
@@ -248,38 +249,6 @@ Evo.Scene = (function() {
 			this.loop.start();
 		}
 				
-	};
-	
-	return self;
-})();
-var Evo = Evo || {};
-Evo.AIThoughts = (function() {
-	/*
-	 * @require Scene
-	 */
-	var self = function() {
-		this.id;
-		this.recencyScore = 0; //0-1
-		this.bayesianScore = 0; //0-1
-		this.operation = function() {};
-		this.input;
-		this.output;
-		this.callsTimestamp = [new Date().getTime()];
-	};
-	
-	self.prototype = {
-		
-	};
-	
-	return self;
-})();
-
-Evo.AIGraph = (function() {
-	var self = function() {
-		
-	};
-	
-	self.prototype = {
 	};
 	
 	return self;
@@ -486,16 +455,29 @@ Evo.Mouse = (function() {
 		this.scene = scene;
 		this.drawRadius = 100;
 		
-		document.addEventListener('mousemove', this.onMouseMove.bind(this));
-		document.addEventListener('touchmove', this.onTouchMove.bind(this));
-		document.addEventListener('touchend', this.onTouchEnd.bind(this));
-
+		if(Evo.Vector.is2d) {
+			document.addEventListener('mousemove', this.onMouseMove.bind(this));
+			document.addEventListener('touchmove', this.onTouchMove.bind(this));
+			document.addEventListener('touchend', this.onTouchEnd.bind(this));
+			this.scene.loop.registerDraw(this);
+		} else {
+			this.mouse3D = new Evo.Vector(-100000, -100000, 0);
+			this.projector = new THREE.Projector();
+			this.ray = new THREE.Ray();
+			
+			this.ray.set(
+				new Evo.Vector(-10000, -10000, 0),
+				new Evo.Vector(0,0,1)
+			);
+			
+			document.addEventListener('mousemove', this.onMouseMove3d.bind(this));
+			document.addEventListener('touchmove', this.onTouchMove.bind(this));
+			document.addEventListener('touchend', this.onTouchEnd.bind(this));
+		}
+		
 		document.ontouchstart = function(e){ 
 			e.preventDefault(); 
 		};
-		
-		//TODO - Figure this out
-		//this.scene.loop.registerDraw(this);
 	};
 	
 	//Public Methods
@@ -520,6 +502,29 @@ Evo.Mouse = (function() {
 			}
 		},
         
+		onMouseMove3d : function(e) {
+			
+			if(typeof(e.pageX) === "number" && e.pageX > this.canvas.left) {
+				this.mouse3D.x = ((e.pageX - this.canvas.left) / (this.canvas.width)) * 2 - 1;
+				this.mouse3D.y = -(e.pageY / (this.canvas.height - this.canvas.top)) * 2 + 1;
+				this.mouse3D.z = 0.5;
+				
+				this.projector.unprojectVector(this.mouse3D, this.scene.camera);
+				this.ray.set(
+					this.scene.camera.position,
+					this.mouse3D.sub(this.scene.camera.position).normalize()
+				);
+				//this.ray.intersectObject(plane);
+
+				this.position.x = e.pageX - this.canvas.left;
+				this.position.y = e.pageY - this.canvas.top;
+            } else {
+				this.position.x = -100000;
+				this.position.y = -100000;
+			}
+		},
+        
+		
         onTouchMove : function(e) {
             if(e.touches) {
 				this.position.x = e.touches[0].pageX - this.canvas.left;
@@ -787,7 +792,7 @@ Evo.Behavior.FleeMouse2d = (function() {
 		this.actor = actor;
 		this.mouse = mouse; //Evo.Mouse instance
 		
-		this.direction = undefined;
+		this.direction = new Evo.Vector();
 		this.distanceToMouse = 0.0;
 		this.speed = 0.0;
 		this.maxWeight = 2;
@@ -801,7 +806,7 @@ Evo.Behavior.FleeMouse2d = (function() {
 	};
 	
 	self.prototype.update = function(dt) {
-		this.direction = Evo.VMath.subtract(this.actor.position, this.mouse.getPosition());
+		this.direction.subVectors(this.actor.position, this.mouse.getPosition());
 		this.distanceToMouse = this.direction.length();
 		
 		this.speed = Math.max(0, this.fleeDistance - this.distanceToMouse) / this.fleeSpeed;
@@ -838,6 +843,59 @@ Evo.Behavior.FleeMouse2d = (function() {
 	};
 	
 	self.prototype.onRemove = function() {
+		
+	};
+	
+	return self;
+})();
+/*
+ * @require BehaviorManager
+ */
+Evo.Behavior.FleeMouse3d = (function() {
+	
+	var self = function(actor, mouse, fleeSpeed, fleeDistance) {
+		this.actor = actor;
+		this.mouse = mouse; //Evo.Mouse instance
+		
+		this.closestPointToMouseRay = new Evo.Vector(0,0,0);
+		this.direction = new Evo.Vector(0,0,0);
+		this.distanceToMouse = 0;
+		this.speed = 0;
+		this.maxWeight = 2;
+		this.weight = 0;
+		this.fleeSpeed = fleeSpeed;
+		this.fleeDistance = fleeDistance;
+		
+		this.prevDirection = new Evo.Vector(0,0,0);
+		this.prevSpeed = 0;
+		this.interpolationAmount = 1;
+	};
+	
+	self.prototype.update = function(dt) {
+		
+		this.mouse.ray.closestPointToPoint(this.actor.position, this.closestPointToMouseRay);
+		this.direction.subVectors(this.actor.position, this.closestPointToMouseRay);
+		this.distanceToMouse = this.direction.length();
+		
+		this.speed = Math.max(0, this.fleeDistance - this.distanceToMouse) / this.fleeSpeed;
+		this.weight = (Math.max(0, this.fleeDistance - this.distanceToMouse) / this.fleeDistance) * this.maxWeight;
+		
+		//Interpolate the speed
+		this.interpolationAmount = Math.min(1, 1 - dt / 500);
+		this.speed = this.speed + (this.prevSpeed - this.speed) * this.interpolationAmount;
+		
+		if(this.speed > 0) {
+			
+			this.direction.normalize();
+			
+			this.actor.addWeightedDirection(this.direction, this.weight);
+			this.actor.addWeightedSpeed(this.speed, this.weight);
+		} else {
+			this.speed = 0;
+		}
+		
+		this.prevDirection.copy(this.direction);
+		this.prevSpeed = this.speed;
 		
 	};
 	
@@ -903,50 +961,39 @@ Evo.Behavior.FleeWalls2d = (function() {
  * @require BehaviorManager
  */
 
-Evo.Behavior.FleeWalls3d = (function() {
-	
-	var self = function(actor, canvas) {
-		this.actor = actor;
-		this.canvas = canvas;
-		
-		//The margin is a quarter of the document
-		this.MARGIN = 0;
-		this.origin = new THREE.Vector3(0,75,0);
-		this.direction = new THREE.Vector3(0,0,0);
-		this.distance = 0;
-		this.fleeStarts = 100;
-		this.fleeStartsSquared = Math.pow(this.fleeStarts, 2);
-		this.fleeEnds = 250;
-		this.fleeEnds = Math.pow(this.fleeEnds, 2);
-		this.fleeDenominator = this.fleeEnds - this.fleeStarts;
-		
-		this.direction = new THREE.Vector3(0,0,0);
-		this.weight = 0;
-	};
-	
-	self.prototype.update = function() {
-		
-		this.distance = this.origin.distanceToSquared(this.actor.position);
-		
-		if(this.distance > this.fleeStartsSquared) {
-			
-			this.direction.copy(this.actor.position).normalize().negate();
+Evo.Behavior.FleeWalls3d = function(actor, canvas) {
+	this.actor = actor;
+	this.canvas = canvas;
 
-			//this.weight = Math.max(this.fleeMargin - (this.distance - this.fleeStarts), 0) / this.fleeMargin;
-			this.weight = (this.distance - this.fleeStartsSquared) / this.fleeDenominator;
+	//The margin is a quarter of the document
+	this.MARGIN = 0;
+	this.origin = new THREE.Vector3(0,75,0);
+	this.direction = new THREE.Vector3(0,0,0);
+	this.distance = 0;
+	this.fleeStarts = 100;
+	this.fleeStartsSquared = Math.pow(this.fleeStarts, 2);
+	this.fleeEnds = 250;
+	this.fleeEnds = Math.pow(this.fleeEnds, 2);
+	this.fleeDenominator = this.fleeEnds - this.fleeStarts;
 
-			this.actor.addWeightedDirection(this.direction, this.weight * 1);
-		}
-	};
-	self.prototype.onAdd = function() {
-		
-	};
-	self.prototype.onRemove = function() {
-		
-	};
+	this.direction = new THREE.Vector3(0,0,0);
+	this.weight = 0;
+};
 	
-	return self;
-})();
+Evo.Behavior.FleeWalls3d.prototype.update = function() {
+
+	this.distance = this.origin.distanceToSquared(this.actor.position);
+
+	if(this.distance > this.fleeStartsSquared) {
+
+		this.direction.copy(this.actor.position).normalize().negate();
+
+		//this.weight = Math.max(this.fleeMargin - (this.distance - this.fleeStarts), 0) / this.fleeMargin;
+		this.weight = (this.distance - this.fleeStartsSquared) / this.fleeDenominator;
+
+		this.actor.addWeightedDirection(this.direction, this.weight * 1);
+	}
+};
 /*
  * @require BehaviorManager
  */
@@ -1054,6 +1101,8 @@ Evo.CellFactory = (function() {
 		this.maxCells = Evo.Vector.is2d ? 1500 : 400;
 		this.cellStartCount = parseInt(this.maxCells / 15, 10);
 		this.killDistance = 100;
+		this.killDistanceSq = Math.pow(this.killDistance, 2);
+		
 		this.scene.mouse.setDrawRadius(this.killDistance);
 		this.energyGenerator = new Evo.EnergyGenerator(this.scene, this);
 		
@@ -1065,7 +1114,11 @@ Evo.CellFactory = (function() {
 		Evo.Phenotype.prototype.setBindings();
 		
 		//$(this.scene.canvas.el).click(this.restart.bind(this));
-		$(this.scene.canvas.el).on('mousedown', this.mouseKillCells.bind(this));
+		if(Evo.Vector.is2d) {
+			$(this.scene.canvas.el).on('mousedown', this.mouseKillCells2d.bind(this));
+		} else {
+			$(this.scene.canvas.el).on('mousedown', this.mouseKillCells3d.bind(this));
+		}
 		$('#CellFactory-Restart').click(this.restart.bind(this));
 		$(window).on('resize', this.rebuildGrid.bind(this));
 	};
@@ -1173,7 +1226,7 @@ Evo.CellFactory = (function() {
             
         },
 		
-		mouseKillCells : function(e) {
+		mouseKillCells2d : function(e) {
 	
 			if(e) e.preventDefault();
 			
@@ -1182,8 +1235,19 @@ Evo.CellFactory = (function() {
 			for(var i=0, il = this.cells.length; i < il; i++) {
 				
 				if(this.cells[i].position.distanceTo(click) < this.killDistance) {
-					this.cells[i].setToDead();
-					this.deadCells.push(this.cells[i]);
+					this.cellIsDead(this.cells[i]);
+				}
+            }
+		},
+		
+		mouseKillCells3d : function(e) {
+	
+			if(e) e.preventDefault();
+			
+			for(var i=0, il = this.cells.length; i < il; i++) {
+				
+				if(this.scene.mouse.ray.distanceToPoint(this.cells[i].position) < this.killDistance) {
+					this.cellIsDead(this.cells[i]);
 				}
             }
 		},
@@ -1199,6 +1263,8 @@ Evo.CellFactory = (function() {
 			if(Evo.Vector.is2d) {
 				//cell.behaviorManager.add(new Evo.Behavior.Boids2d(cell));
 				cell.behaviorManager.add(new Evo.Behavior.FleeMouse2d(cell, this.scene.mouse, cell.phenome.get('fleeSpeed'), cell.phenome.get('fleeDistance')));	
+			} else {
+				cell.behaviorManager.add(new Evo.Behavior.FleeMouse3d(cell, this.scene.mouse, cell.phenome.get('fleeSpeed'), cell.phenome.get('fleeDistance')));
 			}
 		},
 		
@@ -1352,6 +1418,7 @@ Evo.EnergyGenerator = (function() {
 	self.prototype = {
 		
 		update : function(dt) {
+			console.log(dt);
 			this.energy = this.energyPerMillisecond * dt;
 			this.energyPerActor = this.energy / this.cellFactory.getLiveCellCount();
 		},
@@ -2235,6 +2302,7 @@ Evo.Cell = (function() {
 
 			this.size = Math.max(this.size, 1);
 
+			if(this.size === 1) debugger;
 
 			//Calculate the position based on the weighted direction
 			this.weightedDirection.normalize();

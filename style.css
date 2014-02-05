@@ -15,33 +15,6 @@ body {
 	height:100%;
 	width:100%;
 	
-	background: #484b4c; /* Old browsers */
-	background: -moz-linear-gradient(top,  #484b4c 0%, #3c3f40 100%); /* FF3.6+ */
-	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#484b4c), color-stop(100%,#3c3f40)); /* Chrome,Safari4+ */
-	background: -webkit-linear-gradient(top,  #484b4c 0%,#3c3f40 100%); /* Chrome10+,Safari5.1+ */
-	background: -o-linear-gradient(top,  #484b4c 0%,#3c3f40 100%); /* Opera 11.10+ */
-	background: -ms-linear-gradient(top,  #484b4c 0%,#3c3f40 100%); /* IE10+ */
-	background: linear-gradient(to bottom,  #484b4c 0%,#3c3f40 100%); /* W3C */
-	
-	color: #909b9f;
-	font-size: 14px;
-	text-shadow:1px 1px 3px rgba(0,0,0,0.5);
-}
-.menu {
-	width: 14.5em;
-	height: 100%;
-	position:relative;
-	padding: 1em;
-	z-index:2;
-	overflow-y: scroll;
-}
-#evo {
-	background-color: #fff;
-	position: absolute;
-	top: 0;
-	width:100%;
-	height:100%;
-	
 	box-shadow: 0 0 100px rgba(0,150,257,0.5) inset;
 	
 	background: #ffffff;
@@ -51,6 +24,25 @@ body {
 	background: -o-radial-gradient(center, ellipse cover,  #ffffff 0%,#f9fbff 51%,#e5f0ff 88%,#e5f3ff 100%);
 	background: -ms-radial-gradient(center, ellipse cover,  #ffffff 0%,#f9fbff 51%,#e5f0ff 88%,#e5f3ff 100%);
 	background: radial-gradient(ellipse at center,  #ffffff 0%,#f9fbff 51%,#e5f0ff 88%,#e5f3ff 100%);
+	
+	color: #909b9f;
+	font-size: 14px;
+	text-shadow:1px 1px 3px rgba(0,0,0,0.5);
+}
+.menu {
+	height: 100%;
+	position:relative;
+	padding: 1em;
+	z-index:2;
+	overflow-y: scroll;
+	pointer-events: none;
+}
+#evo {
+	position: absolute;
+	top: 0;
+	width:100%;
+	height:100%;
+	
 }
 #evo > canvas {
 	width:100%;
@@ -85,6 +77,11 @@ h1 > span {
     text-align: center;
     font-weight: 800;
     margin-bottom: -0.1em;
+	pointer-events: none !important;
+}
+.menu > * {
+	max-width: 210px;
+	pointer-events: auto;
 }
 .menu-subtitle {
     text-transform: uppercase;
@@ -94,14 +91,14 @@ h1 > span {
     color: #73848A;
 }
 fieldset {
-    margin: 2em 0;
+    margin: 3em 0 2em;
     padding: 0.4em 1em 1em;
     border-color: #777;
     border-radius: 1em;
     background-color: rgba(0,0,0,0.075);
     width: 100%;
 }
-legend {
+.legend {
     color: #749FB3;
     font-size: 1.25em;
     text-align: center;
@@ -110,9 +107,11 @@ legend {
     letter-spacing: 0.05em;
     background: #FFF;
     border-radius: 1em;
-    padding: 0 0.4em;
+    padding: 0.1em 0.4em 0.2em;
     box-shadow: 0 0 1em rgba(0, 113, 189, 0.17);
     border: 2px solid #B5C6CF;
+    margin: -1.2em auto 0.8em;
+    width: 80%;
 }
 label {
     display: block;
@@ -121,6 +120,39 @@ label {
     text-shadow: 0.1em 0.1em 0.1em #fff;
     color: #525252;
     font-weight: 600;
+}
+.range-input {
+	position:relative;
+	font-size: 0.9em;
+	color: #000;
+	text-shadow: 0 0 7px #fff;
+	background: #FFF;
+	border: solid 1px #aaa; width: 100%; 
+	padding: 0.3em 2em;
+	border-radius: 0.7em;
+	box-shadow: inset 1px 3px 4px rgba(0, 0, 0, 0.07);
+	margin: 0.2em 0;
+}
+.range-input-min, .range-input-max {
+	position:absolute;
+	width:2em;
+	text-align: center;
+	top: 0.45em;
+}
+.range-input-min {
+	left:0;
+}
+.range-input-max {
+	right:0;
+}
+.range-input-big-max {
+	padding-right:3em;
+}
+.range-input-big-max .range-input-max {
+	width:3em;
+}
+input[type="range"] {
+	width:100%;
 }
 div.back-button span {
     padding-left: 0em;
@@ -151,17 +183,20 @@ div.back-button span {
     top: 0;
     left: 0;
 	display:block;
+    -moz-transform: scale(1); 
     -webkit-transform: scale(1); 
-    transition: -webkit-transform 500ms  ease-in-out, opacity 500ms ease-in-out;
+    transition: -webkit-transform 500ms ease-in-out, -moz-transform 500ms ease-in-out, opacity 500ms ease-in-out;
 }
 .level2-showing .section-level1 {
     opacity: 0;
     -webkit-transform: scale(2);
+    -moz-transform: scale(2);
     pointer-events: none;
 }
 .section-level2 {
     -webkit-transform: scale(0.5); 
-    transition: -webkit-transform 500ms ease-in-out, opacity 500ms  ease-in-out;
+    -moz-transform: scale(0.5); 
+    transition: -webkit-transform 500ms ease-in-out, -moz-transform 500ms ease-in-out, opacity 500ms  ease-in-out;
     opacity: 0;
     display: block !important;
     pointer-events: none;
@@ -169,9 +204,11 @@ div.back-button span {
     width: 100%;
     top: 0;
     left: 0;
+	-moz-transform-origin:50% 120px;
 	-webkit-transform-origin:50% 120px;
 }
 .level2-showing .section-level2 {
+    -moz-transform: scale(1); 
     -webkit-transform: scale(1); 
     opacity: 1;
     pointer-events: auto;
@@ -190,7 +227,9 @@ div.back-button span {
 	pointer-events: auto;
 }
 .back-button {
-    position: absolute; top: 1.9em; right: -0.6em; z-index: 2;
+    position: absolute; 
+    top: 2.2em; 
+    right: -0.6em; z-index: 2;
 }
 @media screen and (max-width:767px) {
 	.menu {
