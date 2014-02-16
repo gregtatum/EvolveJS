@@ -2,92 +2,200 @@
 <html>
 <head>
 	<meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=0.5" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
 	<meta name="apple-mobile-web-app-capable" content="yes" />
-	<title>Evo.js - An evolution simulation</title>
+	<title>EvolveJS - An Evolution Simulator</title>
+	
+	<meta property="og:image" content="images/screenshot.png" />
+	<meta name="description" content="Explore and play with concepts of evolution using an interactive simulator built exclusively on open web technologies.">
+	
 	<link href='http://fonts.googleapis.com/css?family=Roboto:400,500,700,300,100' rel='stylesheet' type='text/css'>
 	<link href='thirdparty/uniform/css/uniform.evo.css' type='text/css' rel='stylesheet' />
 	<link href='style.css' type='text/css' rel='stylesheet' />
 	
 	<!-- Third party tools -->
 	<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
-	<script src="thirdparty/uniform/jquery.uniform.min.js"></script>
+	<script src="thirdparty/uniform/jquery.uniform.min.js"></script>	
+	<script src="thirdparty/threejs/three.min.js"></script>
+	<script src="thirdparty/threejs/controls/OrbitControls.js"></script>
+	<script src="thirdparty/shake/shake.js"></script>
 	
-	<!-- Evo -->
-	<script src="js/main.js"></script>
-	<script src="js/cells.js"></script>
-	<script src="js/graphs.js"></script>
-	<script src="js/math.js"></script>
-	<script src="js/states.js"></script>
-	<script src="js/ui.js"></script>
+	<script src='build/evolve.min.js'></script>
 </head>
 
-<body>
+<body class='intro-active'>
 	<div class='menu clearfix'>
-		<h1 class='menu-title'>Evo<span>.js</span></h1>
-		<p class='menu-subtitle'>An evolution simulator</p>
-		<div>
-			<input type='button' id='Loop-Pause' value='Pause' />
+		<div class='menu-logo-area'>
+			<h1 class='menu-title'>Evolve<span>JS</span></h1>
+			<p class='menu-subtitle'>An evolution simulator</p>
 		</div>
-		
-		<div class='section-wrapper clearfix'>
-
-			<div class='section-level1 section' id='level1'>
-				<fieldset class='section-navigator clearfix'>
-					<legend>Evo Conditions</legend>
-					<input type='button' value='Cells' data-id-show='section-cells' />
-					<!-- <input type='button' value='Behaviors' data-id-show='section-behaviors' /> -->
-					<input type='button' value='Energy Cost' data-id-show='section-energy' />
-				</fieldset>
-				<fieldset>
-					<legend>Tools</legend>
-					
-					<label for='killdistance'>Kill Distance</label>
-					<input id='killdistance' type='number' min='1' step='1' />
-
-					<input id='CellFactory-Restart' type='button' value='Regrow Cells' />
-					<input id='Binding-toHash' type='button' value='Save to URL' />
-				</fieldset>
+		<a href='#show-controls' class='menu-controls-button hide' id='ui-show-controls' onclick='return false;'>Open Controls</a>
+		<div class='menu-controls'>
+			<div class='pause-button'>
+				<input type='button' id='Loop-Pause' value='Pause' />
 			</div>
-			
-			<div class='section-level2 section' id='level2'>
 
-				<div class='back-button'>
-					<input class='back-button-input' type='button' value='X' />
+			<div class='section-wrapper clearfix'>
+				<div class='section-level1 section' id='level1'>
+					
+					<div class='back-button'>
+						<input id='ui-hide-controls' class='back-button-input' type='button' value='X' />
+					</div>
+					
+					<fieldset class='section-navigator clearfix'>
+						<div class='legend'>Conditions</div>
+						<input type='button' value='Cells' data-id-show='section-cells' />
+						<!-- <input type='button' value='Behaviors' data-id-show='section-behaviors' /> -->
+						<input type='button' value='Food' data-id-show='section-energy' />
+						<input type='button' value='Tools' data-id-show='section-tools' />
+					</fieldset>
 				</div>
 
-				<fieldset class='section-subsection' id='section-cells'>
-					<legend>Cells</legend>
+				<div class='section-level2 section' id='level2'>
 
-					<label for='mutationrate'>Mutation Rate</label>
-					<input id='mutationrate' class='percentage' type='number' min='0' max='1' step='0.1' />
+					<div class='back-button'>
+						<input class='back-button-input' type='button' value='X' />
+					</div>
 
-					<label for='mutationfactor'>Mutation Magnitude</label>
-					<input id='mutationfactor' class='percentage' type='number' min='.01' max='1000' step='0.01' />
+					<fieldset class='section-subsection' id='section-cells'>
+						<div class='legend'>Cells</div>
 
-					<label for='maxcells'>Max Cells</label>
-					<input id='maxcells' type='number' min='1' step='1' />
+						<label for='mutationrate'>Rate of Mutation</label>
+						<div class='range-input range-input-big-max'>
+							<div class='range-input-min'>0</div>
+							<div class='range-input-max'>100</div>
+							<input id='mutationrate' class='percentage' type="range" name="points"  min='0' max='1' step='0.05'>
+						</div>
 
-					<label for='startcount'>Cell Start Count</label>
-					<input id='startcount' type='number' min='1' step='1' />
-				</fieldset>
+						<label for='mutationfactor'>Mutation Magnitude</label>
+						<div class='range-input'>
+							<div class='range-input-min'>0</div>
+							<div class='range-input-max'>5</div>
+							<input id='mutationfactor' class='percentage' type='range' min='.01' max='5' step='0.1' />
+						</div>
 
-				<fieldset class='section-subsection' id='section-energy'>
-					<legend>Energy</legend>
+						<label for='maxcells'>Max Cells</label>
+						<input id='maxcells' type='number' min='1' step='1' />
 
-					<label for='energypersecond'>Energy Per Second</label>
-					<input id='energypersecond' type='number' min='0' step='1000' />
+						<label for='startcount'>Cell Start Count</label>
+						<input id='startcount' type='number' min='1' step='1' />
+					</fieldset>
 
-					<label for='growthfactor'>Growth Efficiency</label>
-					<input id='growthfactor' type='number' min='.01' max='1000' step='0.01' />
+					<fieldset class='section-subsection' id='section-energy'>
+						<div class='legend'>Food</div>
 
-					<label for='speedcost'>Cost to Move</label>
-					<input id='speedcost' type='number' min='0' step='0.01' />
-				</fieldset>
+						<label for='energypersecond'>Food Given Out</label>
+						<div class='range-input'>
+							<div class='range-input-min'>0</div>
+							<div class='range-input-max'>25</div>
+							<input id='energypersecond' type='range' min='0' max='25' step='0.1' />
+						</div>
+
+						<label for='growthfactor'>Growth Speed</label>
+						<div class='range-input'>
+							<div class='range-input-min'>&gt;0</div>
+							<div class='range-input-max'>1</div>
+							<input id='growthfactor' type='range' min='.00005' max='1' step='.0005' />
+						</div>
+
+						<label for='speedcost'>Cost to Move</label>
+						<div class='range-input'>
+							<div class='range-input-min'>0</div>
+							<div class='range-input-max'>1</div>
+							<input id='speedcost' type='range' min='0' max='1' step='0.001' />
+						</div>
+
+					</fieldset>
+
+
+					<fieldset class='section-subsection' id='section-tools'>
+						<div class='legend'>Tools</div>
+
+						<label for='killdistance'>Kill Distance</label>
+						<div class='range-input range-input-big-max'>
+							<div class='range-input-min'>1</div>
+							<div class='range-input-max'>300</div>
+							<input id='killdistance' type='range' min='1' max='300' step='1' />
+						</div>
+
+						<label for='CellFactory-Restart'>Restart Simulation</label>
+						<input id='CellFactory-Restart' type='button' value='Regrow Cells' />
+
+						<label for='Binding-toHash'>Save Your Settings</label>
+						<input id='Binding-toHash' type='button' value='Save to URL' />
+					</fieldset>
+				</div>
 			</div>
-			
 		</div>
 	</div>
-	<canvas></canvas>
+	<section class='content'>
+		<div class='content-back2'></div>
+		<div class='content-back1'></div>
+		<section class='content-intro clearfix'>
+			<h1 class='content-intro-title'>
+				<span class='content-intro-title-evolve'>Evolve</span><span class='content-intro-title-js'>JS</span>
+			</h1>
+			<p class='content-intro-subtitle'>An evolution simulator</p>
+			<p>
+				Each living "cell" can divide. Once it does, its range of abilities have a chance to mutate.
+				It takes energy to move, and you can click to kill cells. Only the cells most fit for the
+				environment will end up reproducing. Have fun evolving! &nbsp; <a href='#read-more' id='content-intro-read-more-link'>Read more details...</a>
+			</p>	
+			<div class='content-read-more' id='content-intro-read-more'>
+				<p>
+					The goal of a cell is to divide as much possible. To do this cells must gain a
+					certain amount of food before they divide. They compete for a limited amount of
+					food that is given out at a regular rate. The more cells there are
+					on the screen, the less food each is able to gain. It also costs cells energy to move.
+					They have limited time to reproduce as the older they get, the more likely they are to
+					die.
+				</p>
+				<h2>An easy experiment</h2>
+				<p>
+					If you're wondering how to evolve the cells, one fun thing to try is to make the
+					cells either flee from your mouse, or ignore your mouse. If you chase the cells
+					around with your cursor they will expend energy to flee. The cells that flee slower
+					will eventually out-compete the cells that flee. Eventually the cells will have
+					evolved to completely ignore your mouse. One tip to make this happen faster
+					is to increase the cost to move in the environment controls.
+				</p>
+				<p>
+					What's even more fun is to try and breed the fastest cells possible. The way to do this
+					is to click and kill cells. The cells that can most efficiently move out of the way
+					will be those most likely to survive. Eventually you'll get to a point where you
+					physically cannot kill all of the cells on the screen. While clicking it can help
+					to wait a second for some cells to get out of the way before killing the slower cells.
+				</p>
+				<p>
+					Currently it's a little easier in 2d mode to run experiments.
+				</p>				
+			</div>
+			<div class='content-half'>
+				<input class='content-button' id='content-intro-start-2d' type='button' value='Start in 2d' />
+			</div>
+			<div class='content-half'>
+				<input class='content-button' id='content-intro-start-3d' type='button' value='Start in 3d' />
+			</div>
+			<p class='content-button-subtext'>Please choose your simulation type.</p>
+		</section>
+	</section>
+	<script>
+		new Evo.UI();
+	</script>
+	<div id='evo'><canvas class='evo-canvas'></canvas></div>
+	<div class='credits'>
+		Designed and developed by <a href='http://gregtatum.com/'>Greg Tatum</a>.
+		Why not <a href='https://twitter.com/intent/tweet/?text=%40TatumCreative%20%23EvolveJS' target='_new'>tweet @ me</a>?
+		Fork this on <a href='http://github.com/TatumCreative/EvolveJS/'>GitHub</a>.
+	</div>
+	<script>
+		(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+		(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+		m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+		})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+		ga('create', 'UA-48078753-1', 'evolvejs.com');
+		ga('send', 'pageview');
+	</script>
 </body>
 </html>
