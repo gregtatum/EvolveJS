@@ -1,6 +1,8 @@
 /*
  * @require Main
- * 
+ * @define Vector2
+ * @define Vector
+ * @define VMath
  * @todo Get rid of custom code and just use Three.js's vectors
  */
 Evo.Vector2 = (function() {
@@ -118,6 +120,7 @@ Evo.Vector = (function() {
 
 	THREE.Vector2.is2d = true;
 	THREE.Vector2.is3d = false;
+	
 	THREE.Vector3.is2d = false;
 	THREE.Vector3.is3d = true;
 	

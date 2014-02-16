@@ -1,5 +1,6 @@
 /*
  * @require BehaviorManager
+ * @define Behavior.FleeMouse3d
  */
 Evo.Behavior.FleeMouse3d = (function() {
 	

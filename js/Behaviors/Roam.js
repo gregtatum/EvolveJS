@@ -1,5 +1,6 @@
 /*
  * @require BehaviorManager
+ * @define Behavior.Roam
  */
 
 Evo.Behavior.Roam = (function() {

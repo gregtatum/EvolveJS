@@ -1,5 +1,6 @@
 /*
  * @require BehaviorManager
+ * @define Behavior.FleeWalls2d
  */
 Evo.Behavior.FleeWalls2d = (function() {
 	

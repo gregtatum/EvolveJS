@@ -1,5 +1,6 @@
 /*
  * @require CellFactory
+ * @define EnergyGenerator
  */
 Evo.EnergyGenerator = (function() {
 	
@@ -10,8 +11,6 @@ Evo.EnergyGenerator = (function() {
 		this.energyPerActor = 0;
 		this.cellFactory = cellFactory;
 		
-		console.log(this.energyPerMillisecond);
-		
 		this.scene = scene;
 		this.scene.loop.registerUpdate(this);
 		
@@ -21,7 +20,6 @@ Evo.EnergyGenerator = (function() {
 	self.prototype = {
 		
 		update : function(dt) {
-			console.log(dt);
 			this.energy = this.energyPerMillisecond * dt;
 			this.energyPerActor = this.energy / this.cellFactory.getLiveCellCount();
 		},

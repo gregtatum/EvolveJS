@@ -1,5 +1,6 @@
 /*
  * @require BehaviorManager
+ * @define Behavior.FleeWalls
  */
 Evo.Behavior.FleeWalls = function(actor, canvas) {
 	if(Evo.Vector.is2d) {

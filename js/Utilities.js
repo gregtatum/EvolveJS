@@ -1,5 +1,6 @@
 /*
  * @require Main
+ * @define Utilities
  */
 Evo.Utilities = { //Collection of worker functions
 		

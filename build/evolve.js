@@ -1,11 +1,14 @@
 /*
  * Evo.Main = //code to tell concatenator that this is the main package
+ * @define Main
  */
 
 var Evo = {};
 /*
  * @require Main
- * 
+ * @define Vector2
+ * @define Vector
+ * @define VMath
  * @todo Get rid of custom code and just use Three.js's vectors
  */
 Evo.Vector2 = (function() {
@@ -123,6 +126,7 @@ Evo.Vector = (function() {
 
 	THREE.Vector2.is2d = true;
 	THREE.Vector2.is3d = false;
+	
 	THREE.Vector3.is2d = false;
 	THREE.Vector3.is3d = true;
 	
@@ -209,11 +213,13 @@ Evo.VMath = (function() {
 })();
 /*
  * @require Main
+ * @define Scene
  */
 Evo.Scene = (function() {
 	
-	var self = function() {
-			
+	var self = function( vectorType ) {
+		Evo.Vector = vectorType || THREE.Vector2;
+		
 		if(Evo.Vector.is3d) {
 			//Todo - Make/use a texture loader? hook into setup3d
 			this.backgroundTexture = THREE.ImageUtils.loadTexture(
@@ -255,6 +261,7 @@ Evo.Scene = (function() {
 })();
 /*
  * @require Main
+ * @define Binding
  */
 Evo.Binding = (function() {
 	
@@ -400,6 +407,7 @@ Evo.Binding = (function() {
 })();
 /*
  * @require Scene
+ * @define Canvas
  */
 Evo.Canvas = (function() {
 	
@@ -446,6 +454,7 @@ Evo.Canvas = (function() {
 })();
 /*
  * @require Scene
+ * @define Mouse
  */
 Evo.Mouse = (function() {
 	
@@ -494,8 +503,8 @@ Evo.Mouse = (function() {
 			
 			if(typeof(e.pageX) === "number" && e.pageX > this.canvas.left) {
 				
-				this.position.x = e.pageX - this.canvas.left;
-				this.position.y = e.pageY - this.canvas.top;
+				this.position.x = (e.pageX - this.canvas.left) * window.devicePixelRatio;
+				this.position.y = (e.pageY - this.canvas.top)  * window.devicePixelRatio;
             } else {
 				this.position.x = -100000;
 				this.position.y = -100000;
@@ -508,6 +517,8 @@ Evo.Mouse = (function() {
 				this.mouse3D.x = ((e.pageX - this.canvas.left) / (this.canvas.width)) * 2 - 1;
 				this.mouse3D.y = -(e.pageY / (this.canvas.height - this.canvas.top)) * 2 + 1;
 				this.mouse3D.z = 0.5;
+				
+				this.mouse3d.multiplyScalar(window.devicePixelRatio);
 				
 				this.projector.unprojectVector(this.mouse3D, this.scene.camera);
 				this.ray.set(
@@ -529,6 +540,8 @@ Evo.Mouse = (function() {
             if(e.touches) {
 				this.position.x = e.touches[0].pageX - this.canvas.left;
 				this.position.y = e.touches[0].pageY - this.canvas.top;
+				
+				this.position.multiplyScalar(window.devicePixelRatio);
 			}
         },
         
@@ -540,8 +553,16 @@ Evo.Mouse = (function() {
 		setDrawRadius : function(radius) {
 			this.drawRadius = radius;
 		},
+				
+		setPosition : function(x, y) {
+			this.position.x = x;
+			this.position.y = y;
+			
+			this.position.multiplyScalar(window.devicePixelRatio);
+		},
 		
 		getPosition : function() {
+			
 			return this.position;
 		},
 		
@@ -558,28 +579,35 @@ Evo.Mouse = (function() {
 })();
 /*
  * @require Scene
+ * @define UI
+ * @define UI.Content
+ * @description High level module to manage the user interface and DOM elements
  */
-Evo.UI = (function() {
+
 	
-	/*
-	 * High level module to manage the user interface and DOM elements
-	 */
+Evo.UI = function() {
+	this.startUniform();
+	this.sectionNavigator = new Evo.SectionNavigator();
+	this.contentIntro = new Evo.UI.Content.Intro();
+	this.$menu = $('.menu');
+	window.addEventListener('shake', this.onShakeHideUI.bind(this), false);
+
+};
 	
-	var self = function() {
-		this.startUniform();
-		this.sectionNavigator = new Evo.SectionNavigator();
-	};
+Evo.UI.prototype = {
+	startUniform : function() {
+		$('input, select, textarea').uniform();
+	},
 	
-	self.prototype = {
-		startUniform : function() {
-			$('input, select, textarea').uniform();
-		}
-	};
-	
-	return self;
-})();
+	onShakeHideUI : function() {
+		this.$menu.toggleClass('shaken');
+	}
+};
+
+Evo.UI.Content = {};
 /*
  * @require Main
+ * @define Utilities
  */
 Evo.Utilities = { //Collection of worker functions
 		
@@ -601,6 +629,7 @@ Evo.BehaviorManager = (function() {
 	/*
 	 * @require Scene
 	 * @require Vector
+	 * @define BehaviorManager
 	 */
 	
 	var self = function() {
@@ -670,6 +699,7 @@ Evo.Behavior = {};
 
 /*
  * @require BehaviorManager
+ * @define Behavior.Boids2d
  */
 Evo.Behavior.Boids2d = (function() {
 	
@@ -735,6 +765,7 @@ Evo.Behavior.Boids2d = (function() {
 
 /*
  * @require BehaviorManager
+ * @define Behavior.DieRandomly
  */
 Evo.Behavior.DieRandomly = (function() {
 	
@@ -758,6 +789,7 @@ Evo.Behavior.DieRandomly = (function() {
 
 /*
  * @require BehaviorManager
+ * @define Behavior.DieWhenCrowded
  */
 Evo.Behavior.DieWhenCrowded = (function() {
 	
@@ -785,6 +817,7 @@ Evo.Behavior.DieWhenCrowded = (function() {
 })();
 /*
  * @require BehaviorManager
+ * @define Behavior.FleeMouse2d
  */
 Evo.Behavior.FleeMouse2d = (function() {
 	
@@ -850,6 +883,7 @@ Evo.Behavior.FleeMouse2d = (function() {
 })();
 /*
  * @require BehaviorManager
+ * @define Behavior.FleeMouse3d
  */
 Evo.Behavior.FleeMouse3d = (function() {
 	
@@ -903,6 +937,7 @@ Evo.Behavior.FleeMouse3d = (function() {
 })();
 /*
  * @require BehaviorManager
+ * @define Behavior.FleeWalls
  */
 Evo.Behavior.FleeWalls = function(actor, canvas) {
 	if(Evo.Vector.is2d) {
@@ -914,6 +949,7 @@ Evo.Behavior.FleeWalls = function(actor, canvas) {
 
 /*
  * @require BehaviorManager
+ * @define Behavior.FleeWalls2d
  */
 Evo.Behavior.FleeWalls2d = (function() {
 	
@@ -959,6 +995,7 @@ Evo.Behavior.FleeWalls2d = (function() {
 })();
 /*
  * @require BehaviorManager
+ * @define Behavior.FleeWalls3d
  */
 
 Evo.Behavior.FleeWalls3d = function(actor, canvas) {
@@ -996,6 +1033,7 @@ Evo.Behavior.FleeWalls3d.prototype.update = function() {
 };
 /*
  * @require BehaviorManager
+ * @define Behavior.GrowAndDivide
  */
 
 Evo.Behavior.GrowAndDivide = (function() {
@@ -1047,6 +1085,7 @@ Evo.Behavior.GrowAndDivide = (function() {
 
 /*
  * @require BehaviorManager
+ * @define Behavior.Roam
  */
 
 Evo.Behavior.Roam = (function() {
@@ -1081,6 +1120,7 @@ Evo.Behavior.Roam = (function() {
 })();
 /*
 * @require Scene
+* @define CellFactory
 */
 
 Evo.CellFactory = (function() {
@@ -1108,6 +1148,7 @@ Evo.CellFactory = (function() {
 		
 		this.cells = [];
 		this.deadCells = [];
+		this.lastTapTimestamp = 0;
 		
 		this.setBindings();
 		Evo.Cell.prototype.setBindings();
@@ -1116,6 +1157,7 @@ Evo.CellFactory = (function() {
 		//$(this.scene.canvas.el).click(this.restart.bind(this));
 		if(Evo.Vector.is2d) {
 			$(this.scene.canvas.el).on('mousedown', this.mouseKillCells2d.bind(this));
+			$(this.scene.canvas.el).on('touchstart', this.doubleTap.bind(this));
 		} else {
 			$(this.scene.canvas.el).on('mousedown', this.mouseKillCells3d.bind(this));
 		}
@@ -1128,6 +1170,7 @@ Evo.CellFactory = (function() {
 		
 		//-------------------------------------
 		// Registration Functions
+		
 		
 		update : function(dt) {},
 		
@@ -1225,11 +1268,29 @@ Evo.CellFactory = (function() {
             //this.grid.emptyAllItems(); //TODO - This shouldn't be needed
             
         },
+				
+		doubleTap : function(event) {
+			
+			//Skip the double, just do it on tap
+			if(true || event.timeStamp - this.lastTapTimestamp <= 500) {
+				
+				this.scene.mouse.setPosition(
+					event.originalEvent.touches[0].pageX,
+					event.originalEvent.touches[0].pageY
+				);
+				
+				if(Evo.Vector.is2d) {
+					this.mouseKillCells2d(event);
+				} else {
+					this.mouseKillCells3d(event);
+				}
+			}
+			this.lastTapTimestamp = event.timeStamp;
+		},
 		
 		mouseKillCells2d : function(e) {
 	
 			if(e) e.preventDefault();
-			
 			var click = this.scene.mouse.position.clone();
 			
 			for(var i=0, il = this.cells.length; i < il; i++) {
@@ -1397,6 +1458,7 @@ Evo.CellFactory = (function() {
 
 /*
  * @require CellFactory
+ * @define EnergyGenerator
  */
 Evo.EnergyGenerator = (function() {
 	
@@ -1407,8 +1469,6 @@ Evo.EnergyGenerator = (function() {
 		this.energyPerActor = 0;
 		this.cellFactory = cellFactory;
 		
-		console.log(this.energyPerMillisecond);
-		
 		this.scene = scene;
 		this.scene.loop.registerUpdate(this);
 		
@@ -1418,7 +1478,6 @@ Evo.EnergyGenerator = (function() {
 	self.prototype = {
 		
 		update : function(dt) {
-			console.log(dt);
 			this.energy = this.energyPerMillisecond * dt;
 			this.energyPerActor = this.energy / this.cellFactory.getLiveCellCount();
 		},
@@ -1449,6 +1508,7 @@ Evo.EnergyGenerator = (function() {
 })();
 /*
  * @require CellFactory
+ * @define Phenotype
  */
 Evo.Phenotype = (function() {
 	var self = function(defaultValue) {
@@ -1506,6 +1566,7 @@ Evo.Phenotype = (function() {
 })();
 /*
  * @require Scene
+ * @define Grid
  */
 
 Evo.Grid = (function() {
@@ -1718,6 +1779,7 @@ Evo.Grid = (function() {
 
 /*
  * @require Grid
+ * @define GridNode
  */
 Evo.GridNode = (function() {
 	
@@ -1767,6 +1829,7 @@ Evo.GridNode = (function() {
 })();
 /*
  * @require Scene
+ * @define Random
  */
 // Noise possibly too intensive and not distributed enough...
 Evo.Random = (function() {
@@ -1804,6 +1867,7 @@ Evo.Random = (function() {
 })(); //Static object
 /*
  * @require Scene
+ * @define ExtendSceneTo3d
  */
 Evo.ExtendSceneTo3d = function(prototypeRef) {
 
@@ -1946,6 +2010,7 @@ Evo.ExtendSceneTo3d = function(prototypeRef) {
 
 /*
  * @require Scene
+ * @define Loop
  */
 Evo.Loop = (function() {
 	
@@ -2075,8 +2140,83 @@ Evo.Loop = (function() {
 	return self;
 })();
 /*
+ * @require UI.Content
+ * @define UI.Content.Intro
  * 
+ * @description All of the basic UI controllers for the intro content
+ * 
+ */
+
+	
+Evo.UI.Content.Intro = function() {
+	this.readMoreLink();
+	this.start2d();
+	this.start3d();
+	this.doToggleAnimation = true;
+	this.toggleAnimation();
+};
+
+Evo.UI.Content.Intro.prototype = {
+	
+	toggleAnimation : function() {
+		if(this.doToggleAnimation) {
+			$('.content-back1, .content-back2').toggleClass('animate');
+			setTimeout(this.toggleAnimation.bind(this), 19990);
+		}
+	},
+	
+	readMoreLink : function() {
+		var $link = $('#content-intro-read-more-link');
+		$link.click(function() {
+			$link.hide();
+			$('#content-intro-read-more').slideDown();
+			return false;
+		});
+	},
+	
+	start2d : function() {
+		var $button = $('#content-intro-start-2d');
+		
+		if( ! window.CanvasRenderingContext2D ) {
+			$button.attr('disabled', 'disabled');
+			$button.val('No 2d mode');
+			$button.uniform();
+		}
+		$button.click(function() {
+			this.doToggleAnimation = false;
+			$('.menu-logo-area').addClass('show');
+			$('#ui-show-controls').removeClass('hide');
+			window.evo = new Evo.Scene( THREE.Vector2 );
+			$('.content').hide();
+			return false;
+		});
+
+	},
+	
+	start3d : function() {
+
+		var $button = $('#content-intro-start-3d');
+		
+		if( !( function () { try { var canvas = document.createElement( 'canvas' ); return !! window.WebGLRenderingContext && ( canvas.getContext( 'webgl' ) || canvas.getContext( 'experimental-webgl' ) ); } catch( e ) { return false; } } )() ) {
+			$button.attr('disabled', 'disabled');
+			$button.val('No 3d mode');
+			$button.uniform();
+		}
+		
+		$button.click(function() {
+			this.doToggleAnimation = false;
+			$('.menu-logo-area').addClass('show');
+			$('#ui-show-controls').removeClass('hide');
+			window.evo = new Evo.Scene( THREE.Vector3 );
+			$('.content').hide();
+			return false;
+		});
+	}
+	
+};
+/*
  * @require UI
+ * @define SectionNavigator
  */
 Evo.SectionNavigator = (function() {
 
@@ -2091,16 +2231,29 @@ Evo.SectionNavigator = (function() {
 		this.$level1 = $("#level1");
 		this.$level2 = $("#level2");
 		this.$wrapper = $(".section-wrapper");
-		
+		this.$menuControls = $('.menu-controls');
+		this.$menuControlsButton = $('#ui-show-controls');
+		this.$menuHideControlsButton = $('#ui-hide-controls');
 		this.$wrapper.addClass('level1-showing');
 		
 		//Set handlers
+		this.$menuControlsButton					.on('mouseup', this.toggleControls.bind(this));
+		this.$menuHideControlsButton				.on('mouseup', this.toggleControls.bind(this));
 		$('.section-navigator input[type=button]')	.on('mouseup', this.showLevel1.bind(this));
 		$('.back-button-input')						.on('mouseup', this.showLevel2.bind(this));
 		$('#Binding-toHash')						.on('mouseup', Evo.Binding.prototype.modelToHash);
+		
 	};
 	
 	self.prototype = {
+		
+		toggleControls : function(e) {
+			if(e) e.preventDefault();
+			this.$menuControls.toggleClass('show');
+			this.$menuControlsButton.toggleClass('hide');
+			
+			return false;
+		},
 		
 		showLevel1 : function(e) {
 			if(e) e.preventDefault();
@@ -2112,6 +2265,8 @@ Evo.SectionNavigator = (function() {
 				this.$wrapper.removeClass('level1-showing');
 				this.$wrapper.addClass('level2-showing');
 			}
+			
+			return false;
 		},
 				
 		showLevel2 : function(e) {
@@ -2121,6 +2276,7 @@ Evo.SectionNavigator = (function() {
 			this.$wrapper.addClass('level1-showing');
 			this.$wrapper.removeClass('level2-showing');
 			
+			return false;
 		}
 	};
 	
@@ -2128,6 +2284,7 @@ Evo.SectionNavigator = (function() {
 })();
 /*
  * @require CellFactory
+ * @define Cell
  */
 Evo.Cell = (function() {
 	
@@ -2357,6 +2514,7 @@ Evo.Cell = (function() {
 })();
 /*
  * @require Phenotype
+ * @define Phenome
  */
 Evo.Phenome = (function() {
 	var self = function() {

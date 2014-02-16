@@ -12,7 +12,7 @@ div.uploader {
 	vertical-align: middle;
 	/* Keeping this as :focus to remove browser styles */
 }
-div.selector: focus, div.checker: focus, div.button: focus, div.radio: focus, div.uploader: focus {
+div.selector:focus, div.checker:focus, div.button:focus, div.radio:focus, div.uploader:focus {
 	outline: 0;
 }
 div.selector,
@@ -261,7 +261,7 @@ div.button {
 	cursor: pointer;
 	position: relative;
 	/* Keep buttons barely visible so they can get focus */
-	height: 2em;
+	/*height: 2em;*/
 	margin-bottom: 2px;
 	margin-top: 2px;
 	width: 100%;
@@ -299,21 +299,25 @@ div.button input {
 	border-radius: 0;
 	cursor: pointer;
 }
+div.button.disabled input {
+	cursor: default;
+}
 div.button span {
 	display: -moz-inline-box;
 	display: block;
 	*display: inline;
 	zoom: 1;
-	line-height: 2;
+	line-height: 1.2;
 	text-align: center;
 	height: inherit;
-	padding: 0 1em;
+	padding: 0.5em 1em;
 	background: rgba(189, 189, 189, 0.96);
 	/* border: 1px solid #75B4AD; */
 	border-radius: 0.5em;
-	text-shadow: 0 0 0.1em #000;
+	text-shadow: 0 0 0.2em rgba(0, 0, 0, 0.61);
 	background: linear-gradient(to bottom, rgba(224, 224, 224, 1) 0%,rgba(165, 165, 165, 1) 100%);
 	box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.39);
+	letter-spacing: 0.03em;
 }
 div.button.hover span,
 div.button.focus span {
@@ -358,7 +362,10 @@ div.button.focus span {
 }
 div.button.disabled span,
 div.button.disabled.active span {
-	color: #bbb;
+	color: #C4C4C4;
+	text-shadow: 0 0 6px rgba(0, 0, 0, 0.29);
+	background: linear-gradient(to bottom, rgba(182, 182, 182, 1) 0%,rgba(165, 165, 165, 1) 100%);
+	cursor: none;
 }
 /* Select */
 
@@ -385,8 +392,6 @@ div.radio {
 }
 /* Uploader */
 
- {
-}
 div.uploader span.filename {
 	/* border-right: solid 1px #bbb; */
 }
@@ -400,7 +405,7 @@ div.uploader.disabled.active span.filename {
 	color: #aaa;
 }
 input.uniform-input,
-input.uniform-input: focus {
+input.uniform-input:focus {
 	background-color: #fff;
 }
 div.selector:after {

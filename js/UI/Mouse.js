@@ -1,5 +1,6 @@
 /*
  * @require Scene
+ * @define Mouse
  */
 Evo.Mouse = (function() {
 	
@@ -48,8 +49,8 @@ Evo.Mouse = (function() {
 			
 			if(typeof(e.pageX) === "number" && e.pageX > this.canvas.left) {
 				
-				this.position.x = e.pageX - this.canvas.left;
-				this.position.y = e.pageY - this.canvas.top;
+				this.position.x = (e.pageX - this.canvas.left) * window.devicePixelRatio;
+				this.position.y = (e.pageY - this.canvas.top)  * window.devicePixelRatio;
             } else {
 				this.position.x = -100000;
 				this.position.y = -100000;
@@ -62,6 +63,8 @@ Evo.Mouse = (function() {
 				this.mouse3D.x = ((e.pageX - this.canvas.left) / (this.canvas.width)) * 2 - 1;
 				this.mouse3D.y = -(e.pageY / (this.canvas.height - this.canvas.top)) * 2 + 1;
 				this.mouse3D.z = 0.5;
+				
+				this.mouse3d.multiplyScalar(window.devicePixelRatio);
 				
 				this.projector.unprojectVector(this.mouse3D, this.scene.camera);
 				this.ray.set(
@@ -83,6 +86,8 @@ Evo.Mouse = (function() {
             if(e.touches) {
 				this.position.x = e.touches[0].pageX - this.canvas.left;
 				this.position.y = e.touches[0].pageY - this.canvas.top;
+				
+				this.position.multiplyScalar(window.devicePixelRatio);
 			}
         },
         
@@ -94,8 +99,16 @@ Evo.Mouse = (function() {
 		setDrawRadius : function(radius) {
 			this.drawRadius = radius;
 		},
+				
+		setPosition : function(x, y) {
+			this.position.x = x;
+			this.position.y = y;
+			
+			this.position.multiplyScalar(window.devicePixelRatio);
+		},
 		
 		getPosition : function() {
+			
 			return this.position;
 		},
 		

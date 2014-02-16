@@ -1,5 +1,6 @@
 /*
  * @require CellFactory
+ * @define Phenotype
  */
 Evo.Phenotype = (function() {
 	var self = function(defaultValue) {

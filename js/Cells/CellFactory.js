@@ -1,5 +1,6 @@
 /*
 * @require Scene
+* @define CellFactory
 */
 
 Evo.CellFactory = (function() {
@@ -27,6 +28,7 @@ Evo.CellFactory = (function() {
 		
 		this.cells = [];
 		this.deadCells = [];
+		this.lastTapTimestamp = 0;
 		
 		this.setBindings();
 		Evo.Cell.prototype.setBindings();
@@ -35,6 +37,7 @@ Evo.CellFactory = (function() {
 		//$(this.scene.canvas.el).click(this.restart.bind(this));
 		if(Evo.Vector.is2d) {
 			$(this.scene.canvas.el).on('mousedown', this.mouseKillCells2d.bind(this));
+			$(this.scene.canvas.el).on('touchstart', this.doubleTap.bind(this));
 		} else {
 			$(this.scene.canvas.el).on('mousedown', this.mouseKillCells3d.bind(this));
 		}
@@ -47,6 +50,7 @@ Evo.CellFactory = (function() {
 		
 		//-------------------------------------
 		// Registration Functions
+		
 		
 		update : function(dt) {},
 		
@@ -144,11 +148,29 @@ Evo.CellFactory = (function() {
             //this.grid.emptyAllItems(); //TODO - This shouldn't be needed
             
         },
+				
+		doubleTap : function(event) {
+			
+			//Skip the double, just do it on tap
+			if(true || event.timeStamp - this.lastTapTimestamp <= 500) {
+				
+				this.scene.mouse.setPosition(
+					event.originalEvent.touches[0].pageX,
+					event.originalEvent.touches[0].pageY
+				);
+				
+				if(Evo.Vector.is2d) {
+					this.mouseKillCells2d(event);
+				} else {
+					this.mouseKillCells3d(event);
+				}
+			}
+			this.lastTapTimestamp = event.timeStamp;
+		},
 		
 		mouseKillCells2d : function(e) {
 	
 			if(e) e.preventDefault();
-			
 			var click = this.scene.mouse.position.clone();
 			
 			for(var i=0, il = this.cells.length; i < il; i++) {

@@ -1,5 +1,6 @@
 /*
  * @require BehaviorManager
+ * @define Behavior.FleeWalls3d
  */
 
 Evo.Behavior.FleeWalls3d = function(actor, canvas) {

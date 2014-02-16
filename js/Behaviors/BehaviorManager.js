@@ -2,6 +2,7 @@ Evo.BehaviorManager = (function() {
 	/*
 	 * @require Scene
 	 * @require Vector
+	 * @define BehaviorManager
 	 */
 	
 	var self = function() {

@@ -1,5 +1,6 @@
 /*
  * @require Scene
+ * @define ExtendSceneTo3d
  */
 Evo.ExtendSceneTo3d = function(prototypeRef) {
 

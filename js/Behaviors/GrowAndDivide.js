@@ -1,5 +1,6 @@
 /*
  * @require BehaviorManager
+ * @define Behavior.GrowAndDivide
  */
 
 Evo.Behavior.GrowAndDivide = (function() {

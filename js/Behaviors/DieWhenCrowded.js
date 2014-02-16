@@ -1,5 +1,6 @@
 /*
  * @require BehaviorManager
+ * @define Behavior.DieWhenCrowded
  */
 Evo.Behavior.DieWhenCrowded = (function() {
 	

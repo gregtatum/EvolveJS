@@ -1,5 +1,6 @@
 /*
  * @require BehaviorManager
+ * @define Behavior.Boids2d
  */
 Evo.Behavior.Boids2d = (function() {
 	

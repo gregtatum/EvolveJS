@@ -1,5 +1,6 @@
 /*
  * @require Scene
+ * @define Canvas
  */
 Evo.Canvas = (function() {
 	

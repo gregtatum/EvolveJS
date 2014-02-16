@@ -1,5 +1,6 @@
 /*
  * @require Scene
+ * @define Loop
  */
 Evo.Loop = (function() {
 	

@@ -1,5 +1,6 @@
 /*
  * @require Main
+ * @define Binding
  */
 Evo.Binding = (function() {
 	

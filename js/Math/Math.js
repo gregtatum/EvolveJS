@@ -1,5 +1,6 @@
 /*
  * @require Scene
+ * @define Random
  */
 // Noise possibly too intensive and not distributed enough...
 Evo.Random = (function() {

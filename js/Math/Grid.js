@@ -1,5 +1,6 @@
 /*
  * @require Scene
+ * @define Grid
  */
 
 Evo.Grid = (function() {

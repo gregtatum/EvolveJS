@@ -1,5 +1,6 @@
 /*
  * @require Phenotype
+ * @define Phenome
  */
 Evo.Phenome = (function() {
 	var self = function() {

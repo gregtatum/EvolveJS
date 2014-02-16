@@ -1,5 +1,6 @@
 /*
  * @require CellFactory
+ * @define Cell
  */
 Evo.Cell = (function() {
 	

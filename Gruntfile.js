@@ -21,10 +21,11 @@ module.exports = function(grunt) {
 			evolve_js_files: {
 				options: {
 					extractRequired: function (filepath, filecontent) {
-						return this.getMatches(/@require[ \t]+([a-zA-Z0-9]+)/g, filecontent);
+						return this.getMatches(/@require[ \t]+([a-zA-Z0-9\.]+)/g, filecontent);
 					},
 					extractDeclared: function (filepath, filecontent) {
-						return this.getMatches(/Evo\.([^ =\n]+)[ \t]*=/g, filecontent);
+						return this.getMatches(/@define[ \t]+([a-zA-Z0-9\.]+)/g, filecontent);
+						//return this.getMatches(/Evo\.([^ =\n]+)[ \t]*=/g, filecontent);
 					}
 				},
 				files: {
@@ -72,7 +73,7 @@ module.exports = function(grunt) {
 		
 		watch: {
 			files: src,
-			tasks: ['jshint', 'concat_in_order', 'beep']
+			tasks: ['concat_in_order', 'beep', 'jshint']
 		}
 	});
 
