@@ -35,7 +35,7 @@ body {
 	position:absolute;
 	padding: 1em;
 	z-index:2;
-	overflow-y: scroll;
+	overflow-y: auto;
 	pointer-events: none;	
 	transition: transform 500ms ease;
 	-webkit-transition: -webkit-transform 500ms ease;
@@ -368,7 +368,7 @@ div.back-button span {
 	position: absolute;
 	bottom: 0;
 	right: 0;
-	overflow-y: scroll;
+	overflow-y: auto;
 	max-height: 100%;
 }
 .content-intro-title-evolve {
