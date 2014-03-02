@@ -198,7 +198,7 @@ Evo.CellFactory = (function() {
 			cell.behaviorManager.add(new Evo.Behavior.Roam(cell));
 			cell.behaviorManager.add(new Evo.Behavior.GrowAndDivide(cell, this, cell.phenome.get('growthRate'), 1.5));
 			//cell.behaviorManager.add(new Evo.Behavior.DieRandomly(cell, this));
-			cell.behaviorManager.add(new Evo.Behavior.DieWhenCrowded(cell, this));
+			cell.behaviorManager.add(new Evo.Behavior.DieWhenCrowdedOrSmall(cell, this));
 			cell.behaviorManager.add(new Evo.Behavior.FleeWalls(cell, this.scene.canvas));
 			
 			if(Evo.Vector.is2d) {
