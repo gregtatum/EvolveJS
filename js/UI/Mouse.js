@@ -64,7 +64,7 @@ Evo.Mouse = (function() {
 				this.mouse3D.y = -(e.pageY / (this.canvas.height - this.canvas.top)) * 2 + 1;
 				this.mouse3D.z = 0.5;
 				
-				this.mouse3d.multiplyScalar(window.devicePixelRatio);
+				this.mouse3D.multiplyScalar(window.devicePixelRatio);
 				
 				this.projector.unprojectVector(this.mouse3D, this.scene.camera);
 				this.ray.set(

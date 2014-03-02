@@ -220,6 +220,9 @@ Evo.Scene = (function() {
 	var self = function( vectorType ) {
 		Evo.Vector = vectorType || THREE.Vector2;
 		
+		this.start();
+		
+		/*
 		if(Evo.Vector.is3d) {
 			//Todo - Make/use a texture loader? hook into setup3d
 			this.backgroundTexture = THREE.ImageUtils.loadTexture(
@@ -229,7 +232,7 @@ Evo.Scene = (function() {
 			);
 		} else {
 			this.start();
-		}
+		}*/
 
 	};
 	
@@ -518,7 +521,7 @@ Evo.Mouse = (function() {
 				this.mouse3D.y = -(e.pageY / (this.canvas.height - this.canvas.top)) * 2 + 1;
 				this.mouse3D.z = 0.5;
 				
-				this.mouse3d.multiplyScalar(window.devicePixelRatio);
+				this.mouse3D.multiplyScalar(window.devicePixelRatio);
 				
 				this.projector.unprojectVector(this.mouse3D, this.scene.camera);
 				this.ray.set(
@@ -789,9 +792,9 @@ Evo.Behavior.DieRandomly = (function() {
 
 /*
  * @require BehaviorManager
- * @define Behavior.DieWhenCrowded
+ * @define Behavior.DieWhenCrowdedOrSmall
  */
-Evo.Behavior.DieWhenCrowded = (function() {
+Evo.Behavior.DieWhenCrowdedOrSmall = (function() {
 	
 	var self = function(actor, cellFactory) {
 		this.actor = actor;
@@ -800,18 +803,23 @@ Evo.Behavior.DieWhenCrowded = (function() {
 	
 	self.prototype.update = function(dt) {
 		
-		if(Math.random() < 0.2 * (this.cellFactory.getLiveCellCount() / this.cellFactory.maxCells)) {
+		if(this.actor.size === 1) {
 			
-			if(Math.random() < 0.05 * (this.actor.age / 10000)) {
-				
-				this.cellFactory.cellIsDead(this.actor);
-				
+			this.cellFactory.cellIsDead(this.actor);
+			
+		} else {
+			
+			if(Math.random() < 0.2 * (this.cellFactory.getLiveCellCount() / this.cellFactory.maxCells)) {
+
+				if(Math.random() < 0.05 * (this.actor.age / 10000)) {
+
+					this.cellFactory.cellIsDead(this.actor);
+
+				}
 			}
 		}
+		
 	};
-	
-	self.prototype.onAdd = function() {};
-	self.prototype.onRemove = function() {};
 	
 	return self;
 })();
@@ -1318,7 +1326,7 @@ Evo.CellFactory = (function() {
 			cell.behaviorManager.add(new Evo.Behavior.Roam(cell));
 			cell.behaviorManager.add(new Evo.Behavior.GrowAndDivide(cell, this, cell.phenome.get('growthRate'), 1.5));
 			//cell.behaviorManager.add(new Evo.Behavior.DieRandomly(cell, this));
-			cell.behaviorManager.add(new Evo.Behavior.DieWhenCrowded(cell, this));
+			cell.behaviorManager.add(new Evo.Behavior.DieWhenCrowdedOrSmall(cell, this));
 			cell.behaviorManager.add(new Evo.Behavior.FleeWalls(cell, this.scene.canvas));
 			
 			if(Evo.Vector.is2d) {
@@ -2459,7 +2467,7 @@ Evo.Cell = (function() {
 
 			this.size = Math.max(this.size, 1);
 
-			if(this.size === 1) debugger;
+			//if(this.size === 1) debugger;
 
 			//Calculate the position based on the weighted direction
 			this.weightedDirection.normalize();

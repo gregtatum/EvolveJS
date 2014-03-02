@@ -7,6 +7,9 @@ Evo.Scene = (function() {
 	var self = function( vectorType ) {
 		Evo.Vector = vectorType || THREE.Vector2;
 		
+		this.start();
+		
+		/*
 		if(Evo.Vector.is3d) {
 			//Todo - Make/use a texture loader? hook into setup3d
 			this.backgroundTexture = THREE.ImageUtils.loadTexture(
@@ -16,7 +19,7 @@ Evo.Scene = (function() {
 			);
 		} else {
 			this.start();
-		}
+		}*/
 
 	};
 	
